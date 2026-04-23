@@ -74,14 +74,13 @@
 ## Open Source Snapshot
 
 <p align="center">
-  <img height="170" src="https://github-readme-stats.vercel.app/api?username=Huanfiy&show_icons=true&hide_border=true&bg_color=FFF7ED&title_color=5B8DEF&icon_color=F29C7B&text_color=6B7280&ring_color=84C7AE" alt="GitHub Stats" />
-  <img height="170" src="https://github-readme-stats.vercel.app/api/top-langs/?username=Huanfiy&layout=compact&hide_border=true&bg_color=FFF7ED&title_color=5B8DEF&text_color=6B7280" alt="Top Languages" />
+  <img src="./assets/public-snapshot.svg" alt="Verified public GitHub snapshot checked via gh on 2026-04-24" width="100%" />
 </p>
 
 <p align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=Huanfiy&bg_color=FFF7ED&color=6B7280&line=5B8DEF&point=F29C7B&area=true&hide_border=true" alt="Contribution Graph" />
-</p>
-
-<p align="center">
+  <sub>Checked with GitHub API via <code>gh</code> on 2026-04-24. Public data only; private or restricted activity is intentionally excluded.</sub>
+  <br />
+  <sub>Authored PR and issue counts do not follow exactly the same rules as GitHub contribution metrics, so they are shown separately.</sub>
+  <br />
   <sub>Keep the signal high. Practice daily. Let the work answer.</sub>
 </p>
