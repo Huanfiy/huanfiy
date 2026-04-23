@@ -1,0 +1,181 @@
+<svg width="1280" height="360" viewBox="0 0 1280 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="640" y1="0" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFF7F0"/>
+      <stop offset="0.48" stop-color="#FEE8D9"/>
+      <stop offset="1" stop-color="#D8ECFF"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1014 98) rotate(90) scale(132 168)">
+      <stop stop-color="#FFF7D9"/>
+      <stop offset="0.56" stop-color="#FFD8B4" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#FFD8B4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="leftGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(204 74) rotate(44.667) scale(276 212)">
+      <stop stop-color="#FFFFFF" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cardFill" x1="734" y1="46" x2="1146" y2="298" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFEFB" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#FFF5EC" stop-opacity="0.72"/>
+    </linearGradient>
+    <linearGradient id="cardStroke" x1="734" y1="46" x2="1138" y2="314" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="1" stop-color="#F5D5BF" stop-opacity="0.76"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="780" y1="168" x2="1042" y2="168" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#73A8E8"/>
+      <stop offset="0.55" stop-color="#8AC8B2"/>
+      <stop offset="1" stop-color="#F5A57D"/>
+    </linearGradient>
+    <linearGradient id="hillFar" x1="640" y1="208" x2="640" y2="338" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D4E4F8" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#B6D2F2"/>
+    </linearGradient>
+    <linearGradient id="hillNear" x1="640" y1="238" x2="640" y2="360" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B9D4F1"/>
+      <stop offset="1" stop-color="#93B9E2"/>
+    </linearGradient>
+    <linearGradient id="bookCover" x1="120" y1="236" x2="426" y2="326" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7A98A"/>
+      <stop offset="1" stop-color="#E98B70"/>
+    </linearGradient>
+    <linearGradient id="pageFill" x1="112" y1="246" x2="432" y2="324" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF8"/>
+      <stop offset="1" stop-color="#FBEAD9"/>
+    </linearGradient>
+    <linearGradient id="pageShade" x1="269" y1="258" x2="269" y2="322" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4DCC6" stop-opacity="0"/>
+      <stop offset="1" stop-color="#EBCFB5" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="wind" x1="324" y1="286" x2="820" y2="104" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="0.36" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.08"/>
+    </linearGradient>
+    <filter id="blur40" x="-80" y="-80" width="1440" height="520" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+    <filter id="blur18" x="-80" y="-80" width="1440" height="520" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="shadow" x="56" y="184" width="470" height="176" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feOffset dy="16"/>
+      <feGaussianBlur stdDeviation="18"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.352941 0 0 0 0 0.494118 0 0 0 0 0.701961 0 0 0 0.22 0"/>
+    </filter>
+    <filter id="cardShadow" x="684" y="18" width="530" height="322" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feOffset dy="12"/>
+      <feGaussianBlur stdDeviation="20"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.470588 0 0 0 0 0.611765 0 0 0 0 0.815686 0 0 0 0.18 0"/>
+    </filter>
+    <clipPath id="frame">
+      <rect width="1280" height="360" rx="32" fill="white"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="360" rx="32" fill="url(#sky)"/>
+    <rect width="1280" height="360" rx="32" fill="#FFFFFF" fill-opacity="0.08"/>
+    <rect x="18" y="18" width="1244" height="324" rx="26" stroke="#FFFFFF" stroke-opacity="0.62" stroke-width="1.2"/>
+
+    <g filter="url(#blur40)" opacity="0.84">
+      <ellipse cx="204" cy="76" rx="224" ry="118" fill="url(#leftGlow)"/>
+      <ellipse cx="1014" cy="102" rx="174" ry="128" fill="url(#sunGlow)"/>
+    </g>
+
+    <g opacity="0.88">
+      <ellipse cx="1032" cy="92" rx="64" ry="64" fill="#FFF8D9"/>
+      <ellipse cx="1032" cy="92" rx="52" ry="52" fill="#FFEABF"/>
+    </g>
+
+    <g filter="url(#blur18)" opacity="0.78">
+      <ellipse cx="246" cy="100" rx="96" ry="28" fill="#FFFFFF"/>
+      <ellipse cx="322" cy="90" rx="72" ry="24" fill="#FFFFFF"/>
+      <ellipse cx="942" cy="140" rx="112" ry="32" fill="#FFFFFF"/>
+      <ellipse cx="1028" cy="132" rx="86" ry="26" fill="#FFFFFF"/>
+      <ellipse cx="1120" cy="148" rx="74" ry="24" fill="#FFFFFF"/>
+      <ellipse cx="874" cy="86" rx="86" ry="24" fill="#FFFDF9"/>
+    </g>
+
+    <path d="M0 246C118 222 226 222 332 240C432 256 506 258 596 240C690 222 778 196 904 198C1052 200 1172 236 1280 226V360H0V246Z" fill="url(#hillFar)" fill-opacity="0.94"/>
+    <path d="M0 284C108 258 212 250 320 262C438 276 554 308 654 296C768 282 846 238 972 238C1092 238 1182 270 1280 260V360H0V284Z" fill="url(#hillNear)"/>
+    <path d="M0 316C136 300 228 294 338 300C466 308 560 334 680 332C818 330 920 300 1028 294C1142 288 1218 300 1280 308V360H0V316Z" fill="#78A7DA" fill-opacity="0.62"/>
+
+    <g opacity="0.52">
+      <path d="M0 254C126 232 246 232 352 248C458 264 524 264 612 248C706 232 788 208 900 210C1028 212 1148 240 1280 232" stroke="#FFFFFF" stroke-opacity="0.54" stroke-width="1.2"/>
+      <path d="M0 290C120 264 222 258 324 270C444 284 554 314 654 302C768 288 846 244 970 244C1092 244 1182 274 1280 264" stroke="#FFFFFF" stroke-opacity="0.34" stroke-width="1.2"/>
+    </g>
+
+    <g opacity="0.54">
+      <path d="M366 292C470 244 566 208 688 176C778 152 842 122 904 84" stroke="url(#wind)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M348 304C472 270 596 232 688 188C782 144 856 114 934 104" stroke="url(#wind)" stroke-width="3.2" stroke-linecap="round"/>
+      <path d="M336 284C430 242 520 198 630 164C714 138 780 122 838 118" stroke="#FFFFFF" stroke-opacity="0.42" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+
+    <g filter="url(#shadow)">
+      <ellipse cx="272" cy="318" rx="168" ry="26" fill="#7E9FC9" fill-opacity="0.22"/>
+    </g>
+
+    <g>
+      <path d="M96 292C142 252 210 236 268 252C302 260 324 276 332 294L112 324L96 292Z" fill="url(#bookCover)" fill-opacity="0.76"/>
+      <path d="M270 252C330 236 398 252 446 292L430 324L210 294C222 276 240 260 270 252Z" fill="url(#bookCover)" fill-opacity="0.76"/>
+
+      <path d="M110 286C154 254 216 246 266 268L266 312C216 292 154 294 112 318L110 286Z" fill="url(#pageFill)"/>
+      <path d="M266 268C316 246 380 252 428 286L428 318C382 294 318 292 266 312V268Z" fill="url(#pageFill)"/>
+      <path d="M266 268V312" stroke="#E6C5A6" stroke-width="2"/>
+      <path d="M256 274C230 268 186 270 136 288" stroke="#EBD8C4" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M254 288C224 282 184 286 136 302" stroke="#EBD8C4" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M278 274C304 268 350 270 404 288" stroke="#EBD8C4" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M280 288C312 282 356 286 406 302" stroke="#EBD8C4" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M232 246H300L286 270H246L232 246Z" fill="#F6D4BE"/>
+      <path d="M260 246H274V286L267 294L260 286V246Z" fill="#E89B80"/>
+      <path d="M110 286C154 254 216 246 266 268" stroke="#F8F3EB" stroke-width="1.2"/>
+      <path d="M266 268C316 246 380 252 428 286" stroke="#F8F3EB" stroke-width="1.2"/>
+      <path d="M128 324C180 300 224 298 266 312" fill="url(#pageShade)" fill-opacity="0.48"/>
+      <path d="M266 312C310 298 360 300 410 324" fill="url(#pageShade)" fill-opacity="0.48"/>
+    </g>
+
+    <g opacity="0.92">
+      <path d="M374 214L410 226L402 258L366 246L374 214Z" fill="#FFFDF8"/>
+      <path d="M378 218L406 228L398 254L370 244L378 218Z" stroke="#F0DCC8" stroke-width="1"/>
+      <path d="M442 188L478 200L470 236L434 224L442 188Z" fill="#FFFDF8"/>
+      <path d="M446 192L474 202L466 232L438 222L446 192Z" stroke="#F0DCC8" stroke-width="1"/>
+      <path d="M526 160L562 172L554 208L518 196L526 160Z" fill="#FFFDF8"/>
+      <path d="M530 164L558 174L550 204L522 194L530 164Z" stroke="#F0DCC8" stroke-width="1"/>
+      <path d="M612 132L646 144L640 176L606 164L612 132Z" fill="#FFFDF8"/>
+      <path d="M616 136L642 146L636 172L610 162L616 136Z" stroke="#F0DCC8" stroke-width="1"/>
+    </g>
+
+    <g opacity="0.8">
+      <circle cx="194" cy="96" r="3.2" fill="#FFFFFF"/>
+      <circle cx="224" cy="78" r="2.4" fill="#FFFFFF"/>
+      <circle cx="438" cy="96" r="2.8" fill="#FFFFFF"/>
+      <circle cx="842" cy="74" r="2.4" fill="#FFF7E1"/>
+      <circle cx="1184" cy="120" r="3.1" fill="#FFFFFF"/>
+      <circle cx="1146" cy="78" r="2.4" fill="#FFFFFF"/>
+      <circle cx="1060" cy="46" r="2.1" fill="#FFFFFF"/>
+    </g>
+
+    <g filter="url(#cardShadow)">
+      <rect x="714" y="42" width="462" height="258" rx="28" fill="url(#cardFill)"/>
+    </g>
+    <rect x="714" y="42" width="462" height="258" rx="28" fill="url(#cardFill)" stroke="url(#cardStroke)" stroke-width="1.4"/>
+    <rect x="736" y="66" width="132" height="30" rx="15" fill="#FFFFFF" fill-opacity="0.7"/>
+    <text x="758" y="86" fill="#5D7EA7" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="13.5">quiet build</text>
+
+    <text x="748" y="138" fill="#26415F" font-family="'Segoe UI', Arial, sans-serif" font-size="61" font-weight="700" letter-spacing="1.2">Huanfiy</text>
+    <rect x="748" y="154" width="296" height="4" rx="2" fill="url(#accent)"/>
+    <text x="748" y="192" fill="#557695" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="17">SYSTEMS / LINUX / AI TOOLING</text>
+    <text x="748" y="232" fill="#3D5876" font-family="'Segoe UI', Arial, sans-serif" font-size="23">Practice daily. Let the work show the skill.</text>
+    <text x="748" y="264" fill="#6A84A0" font-family="'Segoe UI', Arial, sans-serif" font-size="17">Soft curiosity, clear verification, steady craft.</text>
+
+    <g opacity="0.96">
+      <rect x="748" y="278" width="72" height="28" rx="14" fill="#EEF5FF"/>
+      <rect x="830" y="278" width="106" height="28" rx="14" fill="#EFFAF4"/>
+      <rect x="946" y="278" width="108" height="28" rx="14" fill="#FFF2E8"/>
+      <text x="770" y="296" fill="#4A79B5" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="13">linux</text>
+      <text x="850" y="296" fill="#4D8B73" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="13">automation</text>
+      <text x="964" y="296" fill="#B66B48" font-family="'JetBrains Mono', 'Fira Code', monospace" font-size="13">open source</text>
+    </g>
+  </g>
+</svg>
