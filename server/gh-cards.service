@@ -1,0 +1,17 @@
+[Unit]
+Description=gh-cards SVG service for GitHub profile (huanfly.com/gh/*)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/gh-cards
+ExecStart=/usr/bin/python3 /home/ubuntu/apps/gh-cards/server.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
