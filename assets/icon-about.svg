@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" role="img" aria-label="about"><defs>
+  <filter id="wcblur" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="3"/>
+  </filter>
+  <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="2.4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="bigglow" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="6" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2"
+      seed="7" stitchTiles="stitch"/>
+    <feColorMatrix type="matrix"
+      values="0 0 0 0 0.26 0 0 0 0 0.22 0 0 0 0 0.16 0 0 0 0.05 0"/>
+  </filter></defs><rect x="1.5" y="1.5" width="37" height="37" rx="9" fill="#f9f1de"/><path d="M 4.4 4.1 Q 15.3 3.5 20.3 3.6 Q 25.2 3.7 30.5 3.3 L 35.7 2.8 M 35.8 2.7 Q 36.7 14.2 36.4 20.0 Q 36.2 25.8 36.5 31.3 L 36.8 36.7 M 37.0 36.9 Q 25.8 37.1 20.1 37.0 Q 14.3 37.0 9.1 36.6 L 3.9 36.3 M 3.7 36.1 Q 4.3 25.5 4.2 20.2 Q 4.1 14.9 4.1 9.6 L 4.2 4.3" fill="none" stroke="#43382b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/><path d="M 30 6 Q 20 10 13 22 Q 10 28 9 33" fill="none" stroke="#4f79b3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="1.0"/><path d="M 30 6 Q 26 16 17 26 M 25 12 Q 21 14 15 21 M 28 9 Q 24 17 19 24" fill="none" stroke="#4f79b3" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/><path d="M 9 33 L 7 36" fill="none" stroke="#43382b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="1.0"/><circle cx="12" cy="35.5" r="1.8" fill="#43382b" opacity="0.75"/></svg>

@@ -1,86 +1,94 @@
+<!-- 横幅由 huanfly.com 动态生成：随北京时间在黎明/白天/黄昏/夜晚间切换 -->
 <p align="center">
-  <img src="./assets/hero.svg" alt="Huanfiy profile header" width="100%" />
+  <a href="https://huanfly.com">
+    <img src="https://huanfly.com/gh/hero.svg" width="100%" alt="Huanfly — 手绘异世界横幅，随北京时间昼夜流转" />
+  </a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Linux-Ubuntu%2022.04-F8E2D2?style=flat-square&labelColor=FDEBDD&logo=ubuntu&logoColor=DD6B20" alt="Ubuntu 22.04" />
-  <img src="https://img.shields.io/badge/Workflow-terminal--first-EAF2FF?style=flat-square&labelColor=D9E8FF&logo=gnubash&logoColor=2E7D32" alt="Terminal-first workflow" />
-  <img src="https://img.shields.io/badge/Language-%E4%B8%AD%E6%96%87%20%7C%20English-EAF9F0?style=flat-square&labelColor=D6F1E3&logo=googletranslate&logoColor=2563EB" alt="Chinese and English" />
-  <img src="https://img.shields.io/badge/Principle-verify%20before%20trust-FFF4DA?style=flat-square&labelColor=FFE6B6" alt="Verify before trust" />
+  <sub>✦ 横幅与下方档案卡为实时生成的原创手绘 SVG，随北京时间在黎明 · 白天 · 黄昏 · 夜晚间流转 ✦</sub>
 </p>
 
-<h3 align="center">把兴趣做成作品，把想法磨成能落地、能验证的东西。</h3>
+<img src="./assets/divider.svg" width="100%" alt="" />
 
-<p align="center">
-  Systems · Linux workflows · AI tooling · automation · open-source experiments
-</p>
-
-<p align="center">
-  <sub>把手上的事做好，把本事留在作品里。</sub>
-</p>
-
-## Profile Notes
+## <img src="./assets/icon-about.svg" width="26" alt="" /> 关于我
 
 <table>
   <tr>
-    <td width="50%" valign="top">
-      <h3>Public Notes</h3>
+    <td width="58%" valign="top">
+      <br />
       <p>
-        这里只放公开、稳定、非敏感的信息。
-        <br />
-        比起即时状态，更偏向留下能长期成立的判断和作品。
+        嵌入式软件工程师。日常在 Ubuntu 24.04 + terminal-first 的工作流里，
+        写 C/C++ 和 Python，折腾 Linux、输入法和 AI 工具链。
+      </p>
+      <p>
+        把兴趣做成作品，把想法磨成能落地、能验证的东西。
+      </p>
+      <ul>
+        <li>先理解问题本身，再做工程取舍。</li>
+        <li>先把东西做出来，再用可观察的方法验证它。</li>
+        <li>偏好边界清晰、步骤可验证、结果可复用的解法。</li>
+        <li>让作品替自己说话。</li>
+      </ul>
+      <p>
+        <sub>Focus：嵌入式系统 / Linux / AI 工具链 / 自动化 / 工程验证</sub>
       </p>
     </td>
-    <td width="50%" valign="top">
-      <h3>Focus</h3>
-      <p>
-        系统思维 / Linux / AI 工具链 / 自动化 / 代码阅读 / 工程验证
-      </p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>How I Work</h3>
-      <p>
-        先理解问题本身，再做工程取舍。
-        <br />
-        偏好边界清晰、步骤可验证、结果可复用的解法。
-      </p>
-    </td>
-    <td width="50%" valign="top">
-      <h3>Daily Setup</h3>
-      <p>
-        Ubuntu 22.04
-        <br />
-        zsh / Git / terminal-first workflow
-      </p>
+    <td width="42%" align="center" valign="middle">
+      <!-- 素材位：由 huanfly.com/gh/keyart 提供，未放图时显示原创插画 -->
+      <img src="https://huanfly.com/gh/keyart" width="88%" alt="illustration" />
     </td>
   </tr>
 </table>
 
-## Working Principles
+<img src="./assets/divider.svg" width="100%" alt="" />
 
-- 先理解本质，再优化表面。
-- 先把东西做出来，再用可观察的方法验证它。
-- 偏好可复用的工具，而不是一次性的聪明技巧。
-- 让作品替自己说话。
-
-## Toolbox
+## <img src="./assets/icon-stack.svg" width="26" alt="" /> 技术栈
 
 <p align="center">
-  <img src="https://skillicons.dev/icons?i=linux,bash,git,github,docker,python,c,cpp,cmake,vscode,neovim&theme=light" alt="Toolbox" />
+  <img src="./assets/stack-panel.svg" width="100%" alt="技术栈：嵌入式（C / C++ / STM32 / ESP32 / RTOS / USB）· 系统与工具（Linux / zsh / Git / CMake / Docker / Neovim）· 语言与折腾（Python / Lua / Shell / Rime / FunASR / AI CLI）" />
 </p>
 
-## Open Source Snapshot
+<img src="./assets/divider.svg" width="100%" alt="" />
+
+## <img src="./assets/icon-works.svg" width="26" alt="" /> 精选作品
+
+<table>
+  <tr>
+    <td width="33%" align="center">
+      <a href="https://github.com/Huanfiy/VocoType-linux">
+        <img src="./assets/card-vocotype.svg" width="100%" alt="VocoType-linux：Linux 离线中文语音输入法，FunASR，约 0.1s 上屏" />
+      </a>
+    </td>
+    <td width="33%" align="center">
+      <a href="https://github.com/Huanfiy/rime-lite">
+        <img src="./assets/card-rime-lite.svg" width="100%" alt="rime-lite：小而美的 Rime 输入法配置" />
+      </a>
+    </td>
+    <td width="33%" align="center">
+      <a href="https://github.com/Huanfiy/oh-my-terminal">
+        <img src="./assets/card-oh-my-terminal.svg" width="100%" alt="oh-my-terminal：优雅的终端套件配置，zsh / tmux / p10k" />
+      </a>
+    </td>
+  </tr>
+</table>
+
+<img src="./assets/divider.svg" width="100%" alt="" />
+
+## <img src="./assets/icon-stats.svg" width="26" alt="" /> 冒险者档案
 
 <p align="center">
-  <img src="./assets/public-snapshot.svg" alt="Verified public GitHub snapshot checked via gh on 2026-04-24" width="100%" />
+  <img src="https://huanfly.com/gh/stats.svg" width="92%" alt="GitHub 实时统计：公开仓库、获星、关注者、冒险年数与语言构成" />
 </p>
 
 <p align="center">
-  <sub>Checked with GitHub API via <code>gh</code> on 2026-04-24. Public data only; private or restricted activity is intentionally excluded.</sub>
-  <br />
-  <sub>Authored PR and issue counts do not follow exactly the same rules as GitHub contribution metrics, so they are shown separately.</sub>
-  <br />
-  <sub>Keep the signal high. Practice daily. Let the work answer.</sub>
+  <img src="./assets/footer.svg" width="100%" alt="草原暮色中持杖的旅人 —— 把手上的事做好，把本事留在作品里。" />
+</p>
+
+<p align="center">
+  <sub>
+    本页所有插画为原创手绘风 SVG（<code>tools/</code> 生成，动画内嵌）·
+    文字使用 <a href="https://github.com/lxgw/LxgwWenKai">霞鹜文楷</a>（OFL 子集内嵌）·
+    动态卡片由 <a href="https://huanfly.com">huanfly.com</a> 实时渲染
+  </sub>
 </p>

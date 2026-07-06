@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40" role="img" aria-label="stack"><defs>
+  <filter id="wcblur" x="-30%" y="-30%" width="160%" height="160%">
+    <feGaussianBlur stdDeviation="3"/>
+  </filter>
+  <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="2.4" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="bigglow" x="-80%" y="-80%" width="260%" height="260%">
+    <feGaussianBlur stdDeviation="6" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2"
+      seed="7" stitchTiles="stitch"/>
+    <feColorMatrix type="matrix"
+      values="0 0 0 0 0.26 0 0 0 0 0.22 0 0 0 0 0.16 0 0 0 0.05 0"/>
+  </filter></defs><rect x="1.5" y="1.5" width="37" height="37" rx="9" fill="#f9f1de"/><path d="M 4.4 4.1 Q 15.3 3.5 20.3 3.6 Q 25.2 3.7 30.5 3.3 L 35.7 2.8 M 35.8 2.7 Q 36.7 14.2 36.4 20.0 Q 36.2 25.8 36.5 31.3 L 36.8 36.7 M 37.0 36.9 Q 25.8 37.1 20.1 37.0 Q 14.3 37.0 9.1 36.6 L 3.9 36.3 M 3.7 36.1 Q 4.3 25.5 4.2 20.2 Q 4.1 14.9 4.1 9.6 L 4.2 4.3" fill="none" stroke="#43382b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/><path d="M 6.7 8.1 Q 14.7 7.9 18.4 7.9 Q 22.1 8.0 26.3 8.0 L 30.6 8.0 M 30.8 8.0 Q 30.6 16.8 30.5 21.1 Q 30.4 25.5 31.0 29.8 L 31.5 34.1 M 31.4 34.1 Q 23.5 34.7 19.3 34.7 Q 15.0 34.6 10.5 35.1 L 6.0 35.5 M 6.0 35.9 Q 6.0 26.1 6.4 21.9 Q 6.8 17.6 6.7 12.7 L 6.6 7.8" fill="none" stroke="#43382b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="1.0"/><path d="M 11 8 L 11 35" fill="none" stroke="#43382b" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/><path d="M 24 8 L 24 18 L 27 15 L 30 18 L 30 8 Z" fill="#cf6a5e" opacity="0.85" /><path d="M 19 19 Q 20.1 22.9 24 24 Q 20.1 25.1 19 29 Q 17.9 25.1 14 24 Q 17.9 22.9 19 19 Z" fill="#e5b566" filter="url(#softglow)"><animate attributeName="opacity" values="0.18589328813124933;1;0.18589328813124933" dur="2.8s" begin="0.0s" repeatCount="indefinite"/></path></svg>
