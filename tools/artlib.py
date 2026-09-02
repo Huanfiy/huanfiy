@@ -4,10 +4,20 @@
 所有随机性都来自显式传入的 seed，保证产物可复现。
 被 tools/genart.py（静态资产）与 server/cards.py（动态卡片）共用。
 """
+import itertools
+import json
 import math
 import random
+from pathlib import Path
 
 from content import PALETTE
+
+_uid = itertools.count(1)
+
+
+def uid(prefix="g"):
+    """文档内唯一 id（渐变 / 裁剪用）。"""
+    return f"{prefix}{next(_uid)}"
 
 
 # ================================================================ 基础路径 ==
@@ -81,13 +91,50 @@ def wobbly_rect_d(x, y, w, h, seed=1, amp=1.6):
     return " ".join(d)
 
 
-def stroke(d, color=None, w=2.2, opacity=1.0, dash=None, cls=""):
+def wobbly_rounded_rect_d(x, y, w, h, r, seed=1, amp=0.9):
+    """手绘圆角矩形（闭合单路径，可填充可描边）。"""
+    rnd = random.Random(seed)
+    pts = []
+
+    def edge(x1, y1, x2, y2):
+        n = max(2, int(math.hypot(x2 - x1, y2 - y1) / 30))
+        for i in range(n):
+            t = i / n
+            pts.append((x1 + (x2 - x1) * t + rnd.uniform(-amp, amp),
+                        y1 + (y2 - y1) * t + rnd.uniform(-amp, amp)))
+
+    def arc(cx, cy, a0):
+        for i in range(1, 3):
+            a = a0 + math.pi / 2 * i / 3
+            pts.append((cx + r * math.cos(a) + rnd.uniform(-amp, amp) * 0.4,
+                        cy + r * math.sin(a) + rnd.uniform(-amp, amp) * 0.4))
+
+    edge(x + r, y, x + w - r, y)
+    arc(x + w - r, y + r, -math.pi / 2)
+    edge(x + w, y + r, x + w, y + h - r)
+    arc(x + w - r, y + h - r, 0)
+    edge(x + w - r, y + h, x + r, y + h)
+    arc(x + r, y + h - r, math.pi / 2)
+    edge(x, y + h - r, x, y + r)
+    arc(x + r, y + r, math.pi)
+    return _smooth_path(pts, closed=True)
+
+
+def rounded_rect_d(x, y, w, h, r):
+    """规整圆角矩形 path d（填充用）。"""
+    return (f"M {x + r:.1f} {y:.1f} h {w - 2 * r:.1f} a {r} {r} 0 0 1 {r} {r} "
+            f"v {h - 2 * r:.1f} a {r} {r} 0 0 1 {-r} {r} h {-(w - 2 * r):.1f} "
+            f"a {r} {r} 0 0 1 {-r} {-r} v {-(h - 2 * r):.1f} "
+            f"a {r} {r} 0 0 1 {r} {-r} Z")
+
+
+def stroke(d, color=None, w=2.2, opacity=1.0, dash=None, cls="", extra=""):
     color = color or PALETTE["ink"]
     dash_attr = f' stroke-dasharray="{dash}"' if dash else ""
     cls_attr = f' class="{cls}"' if cls else ""
     return (f'<path d="{d}" fill="none" stroke="{color}" stroke-width="{w}" '
             f'stroke-linecap="round" stroke-linejoin="round" '
-            f'opacity="{opacity}"{dash_attr}{cls_attr}/>')
+            f'opacity="{opacity}"{dash_attr}{cls_attr} {extra}/>')
 
 
 def fill_path(d, color, opacity=1.0, extra=""):
@@ -104,11 +151,36 @@ def sketchy_frame(x, y, w, h, seed=1, color=None, sw=2.4, double=True):
     return "".join(parts)
 
 
+def fade_line(x1, y, x2, color, w=1.4, opacity=0.8, seed=1, amp=1.2,
+              fade_in=0.0, fade_out=0.35):
+    """两端渐隐的手绘横线（渐变描边）。fade_* 为渐隐区占比。"""
+    gid = uid("fl")
+    stops = [f'<stop offset="0" stop-color="{color}" stop-opacity="0"/>'
+             if fade_in > 0 else
+             f'<stop offset="0" stop-color="{color}" stop-opacity="1"/>']
+    if fade_in > 0:
+        stops.append(f'<stop offset="{fade_in}" stop-color="{color}" '
+                     f'stop-opacity="1"/>')
+    if fade_out > 0:
+        stops.append(f'<stop offset="{1 - fade_out}" stop-color="{color}" '
+                     f'stop-opacity="1"/>')
+        stops.append(f'<stop offset="1" stop-color="{color}" '
+                     f'stop-opacity="0"/>')
+    else:
+        stops.append(f'<stop offset="1" stop-color="{color}" '
+                     f'stop-opacity="1"/>')
+    grad = (f'<linearGradient id="{gid}" gradientUnits="userSpaceOnUse" '
+            f'x1="{x1}" y1="0" x2="{x2}" y2="0">{"".join(stops)}'
+            f'</linearGradient>')
+    return grad + stroke(wobbly_line(x1, y, x2, y, seed=seed, amp=amp),
+                         f"url(#{gid})", w, opacity=opacity)
+
+
 # ================================================================ 水彩质感 ==
 
 def watercolor_blob(cx, cy, r, color, seed=1, opacity=0.16, layers=2,
-                    blur_id="wcblur"):
-    """多层不规则色斑模拟水彩晕染，配合 feGaussianBlur 滤镜使用。"""
+                    blur_id="wcblur", edge=True):
+    """多层不规则色斑模拟水彩晕染：中心淡、边缘微微积色。"""
     rnd = random.Random(seed)
     parts = []
     for i in range(layers):
@@ -119,14 +191,23 @@ def watercolor_blob(cx, cy, r, color, seed=1, opacity=0.16, layers=2,
                             irregular=0.16, n=14)
         parts.append(f'<path d="{d}" fill="{color}" opacity="{opacity}" '
                      f'filter="url(#{blur_id})"/>')
+        if edge and i == 0:
+            # 水彩边缘积色线
+            parts.append(f'<path d="{d}" fill="none" stroke="{color}" '
+                         f'stroke-width="{max(1.0, r * 0.03):.1f}" '
+                         f'opacity="{opacity * 0.9:.3f}" '
+                         f'filter="url(#{blur_id})"/>')
     return "".join(parts)
 
 
 def defs_common():
-    """公共 <defs>：水彩模糊、柔光、纸纹噪声。"""
+    """公共 <defs>：水彩模糊、柔光、纸纹噪声、投影。"""
     return """
   <filter id="wcblur" x="-30%" y="-30%" width="160%" height="160%">
     <feGaussianBlur stdDeviation="3"/>
+  </filter>
+  <filter id="wcblur2" x="-40%" y="-40%" width="180%" height="180%">
+    <feGaussianBlur stdDeviation="7"/>
   </filter>
   <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
     <feGaussianBlur stdDeviation="2.4" result="b"/>
@@ -136,6 +217,10 @@ def defs_common():
     <feGaussianBlur stdDeviation="6" result="b"/>
     <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
+  <filter id="cardshadow" x="-10%" y="-10%" width="120%" height="130%">
+    <feDropShadow dx="0" dy="2.5" stdDeviation="3.5" flood-color="#3a2d18"
+      flood-opacity="0.16"/>
+  </filter>
   <filter id="grain">
     <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2"
       seed="7" stitchTiles="stitch"/>
@@ -144,52 +229,93 @@ def defs_common():
   </filter>"""
 
 
-def grain_rect(w, h):
-    """铺满画布的纸纹噪声层（放在最上层）。"""
-    return f'<rect width="{w}" height="{h}" filter="url(#grain)"/>'
+def grain_rect(w, h, x=0, y=0, rx=0):
+    """纸纹噪声层（放在最上层）；可只覆盖纸面区域。"""
+    return (f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" '
+            f'filter="url(#grain)"/>')
 
 
-def paper_bg(w, h, rx=14, color=None, edge=True, seed=5):
-    """羊皮纸底 + 手绘描边。"""
+def vignette(w, h, color="#5a4a30", opacity=0.10, rx=14):
+    """纸面边缘微暗，增加厚度感。"""
+    gid = uid("vg")
+    return (f'<radialGradient id="{gid}" cx="50%" cy="45%" r="70%">'
+            f'<stop offset="0.55" stop-color="{color}" stop-opacity="0"/>'
+            f'<stop offset="1" stop-color="{color}" stop-opacity="{opacity}"/>'
+            f'</radialGradient>'
+            f'<rect x="0" y="0" width="{w}" height="{h}" rx="{rx}" '
+            f'fill="url(#{gid})"/>')
+
+
+def paper_bg(w, h, rx=14, color=None, edge=True, seed=5, shadow=True,
+             inset=4, sw=1.9, edge_opacity=0.85, vignette_op=0.09):
+    """羊皮纸底 + 微暗边缘 + 手绘描边（+ 柔和投影）。"""
     color = color or PALETTE["paper"]
-    parts = [f'<rect x="1.5" y="1.5" width="{w-3}" height="{h-3}" rx="{rx}" '
-             f'fill="{color}"/>']
+    fx = f' filter="url(#cardshadow)"' if shadow else ""
+    parts = [f'<rect x="{inset}" y="{inset}" width="{w - 2 * inset}" '
+             f'height="{h - 2 * inset}" rx="{rx}" fill="{color}"{fx}/>']
+    if vignette_op > 0:
+        parts.append(f'<g transform="translate({inset} {inset})">'
+                     + vignette(w - 2 * inset, h - 2 * inset,
+                                opacity=vignette_op, rx=rx) + '</g>')
     if edge:
-        parts.append(sketchy_frame(6, 6, w - 12, h - 12, seed=seed,
-                                   color=PALETTE["ink"], sw=2.2))
+        m = inset + 5
+        parts.append(stroke(wobbly_rect_d(m, m, w - 2 * m, h - 2 * m,
+                                          seed=seed, amp=1.3),
+                            PALETTE["ink"], sw, opacity=edge_opacity))
+        parts.append(stroke(wobbly_rect_d(m, m, w - 2 * m, h - 2 * m,
+                                          seed=seed + 97, amp=2.0),
+                            PALETTE["ink"], sw * 0.5, opacity=0.22))
     return "".join(parts)
 
 
 # ================================================================ 装饰元素 ==
 
-def sparkle(x, y, s, color=None, dur=None, seed=1, delay=0.0):
+def sparkle(x, y, s, color=None, dur=None, seed=1, delay=0.0, lo=None):
     """四芒星光点，呼吸闪烁。"""
     rnd = random.Random(seed)
     color = color or PALETTE["glow"]
     dur = dur or rnd.uniform(1.8, 3.6)
     k = s * 0.22
-    d = (f"M {x} {y - s} Q {x + k} {y - k} {x + s} {y} "
-         f"Q {x + k} {y + k} {x} {y + s} "
-         f"Q {x - k} {y + k} {x - s} {y} "
-         f"Q {x - k} {y - k} {x} {y - s} Z")
-    lo = rnd.uniform(0.08, 0.25)
+    d = (f"M {x:.1f} {y - s:.1f} Q {x + k:.1f} {y - k:.1f} {x + s:.1f} {y:.1f} "
+         f"Q {x + k:.1f} {y + k:.1f} {x:.1f} {y + s:.1f} "
+         f"Q {x - k:.1f} {y + k:.1f} {x - s:.1f} {y:.1f} "
+         f"Q {x - k:.1f} {y - k:.1f} {x:.1f} {y - s:.1f} Z")
+    lo = lo if lo is not None else rnd.uniform(0.08, 0.25)
     return (f'<path d="{d}" fill="{color}" filter="url(#softglow)">'
             f'<animate attributeName="opacity" values="{lo};1;{lo}" '
             f'dur="{dur:.1f}s" begin="{delay:.1f}s" repeatCount="indefinite"/>'
             f'</path>')
 
 
-def dot_particle(x, y, r, color, seed=1, rise=14):
+def star_field(w, h, count, seed=1, color="#f6f1d8", y_max=None,
+               op_lo=0.25, op_hi=0.8):
+    """静态细碎星点（不闪），用于夜空打底。"""
+    rnd = random.Random(seed)
+    y_max = y_max or h * 0.6
+    parts = []
+    for _ in range(count):
+        x = rnd.uniform(6, w - 6)
+        y = rnd.uniform(6, y_max)
+        r = rnd.uniform(0.5, 1.3)
+        op = rnd.uniform(op_lo, op_hi)
+        parts.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" '
+                     f'fill="{color}" opacity="{op:.2f}"/>')
+    return "".join(parts)
+
+
+def dot_particle(x, y, r, color, seed=1, rise=14, drift=0.0):
     """缓缓上升消散的魔力粒子。"""
     rnd = random.Random(seed)
     dur = rnd.uniform(5.0, 9.0)
     delay = rnd.uniform(0, dur)
-    return (f'<circle cx="{x}" cy="{y}" r="{r}" fill="{color}" opacity="0">'
+    dx = drift if drift else rnd.uniform(-4, 4)
+    return (f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{color}" '
+            f'opacity="0">'
             f'<animate attributeName="opacity" values="0;0.85;0" dur="{dur:.1f}s" '
             f'begin="{delay:.1f}s" repeatCount="indefinite"/>'
             f'<animateTransform attributeName="transform" type="translate" '
-            f'values="0 0; 0 {-rise}" dur="{dur:.1f}s" begin="{delay:.1f}s" '
-            f'repeatCount="indefinite"/></circle>')
+            f'values="0 0; {dx:.1f} {-rise:.1f}" dur="{dur:.1f}s" '
+            f'begin="{delay:.1f}s" repeatCount="indefinite"/></circle>')
 
 
 def _rune(cx, cy, s, seed):
@@ -208,7 +334,6 @@ def magic_circle(cx, cy, r, color=None, seed=3, dur_outer=80, dur_inner=60,
                  opacity=1.0, sw=1.6):
     """三重旋转魔法阵：外环符文顺时针，内环刻度逆时针，中心六芒星。"""
     color = color or PALETTE["glow"]
-    rnd = random.Random(seed)
     g = [f'<g opacity="{opacity}" filter="url(#softglow)">']
 
     # ---- 外环组（顺时针） ----
@@ -263,25 +388,33 @@ def magic_circle(cx, cy, r, color=None, seed=3, dur_outer=80, dur_inner=60,
 
 
 def cloud(cx, cy, scale=1.0, color="#ffffff", opacity=0.75, seed=4,
-          drift=26, dur=42):
-    """水彩云团，左右漂移。"""
+          drift=26, dur=42, shade=None, blur="wcblur"):
+    """水彩云团，左右漂移；shade 给底部一层暗色增加体积感。"""
     rnd = random.Random(seed)
-    lobes = []
     spec = [(-1.5, 0.15, 0.62), (-0.6, -0.28, 0.85), (0.4, -0.2, 0.95),
             (1.3, 0.1, 0.7), (0.1, 0.25, 0.8)]
+    lobes = []
     for i, (dx, dy, rr) in enumerate(spec):
         r = 26 * rr * scale * rnd.uniform(0.9, 1.1)
-        d = wobbly_circle_d(cx + dx * 30 * scale, cy + dy * 26 * scale, r,
-                            seed=seed * 7 + i, irregular=0.10, n=12)
-        lobes.append(f'<path d="{d}" fill="{color}"/>')
-    return (f'<g opacity="{opacity}" filter="url(#wcblur)">{"".join(lobes)}'
+        lobes.append((cx + dx * 30 * scale, cy + dy * 26 * scale, r, i))
+    parts = []
+    if shade:
+        for (x, y, r, i) in lobes:
+            d = wobbly_circle_d(x, y + 5 * scale, r * 1.02,
+                                seed=seed * 7 + i, irregular=0.10, n=12)
+            parts.append(f'<path d="{d}" fill="{shade}" opacity="0.45"/>')
+    for (x, y, r, i) in lobes:
+        d = wobbly_circle_d(x, y, r, seed=seed * 7 + i, irregular=0.10, n=12)
+        parts.append(f'<path d="{d}" fill="{color}"/>')
+    return (f'<g opacity="{opacity}" filter="url(#{blur})">{"".join(parts)}'
             f'<animateTransform attributeName="transform" type="translate" '
             f'values="0 0; {drift} 0; 0 0" dur="{dur}s" '
-            f'repeatCount="indefinite"/></g>')
+            f'repeatCount="indefinite" calcMode="spline" '
+            f'keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/></g>')
 
 
 def floating_island(cx, cy, w, seed=6, bob=4, dur=7, grass=None, rock="#7a6a55",
-                    grass_deep=None, waterfall=False):
+                    grass_deep=None, waterfall=False, ink_opacity=0.5):
     """浮空岛：草皮圆顶 + 岩石倒锥 + 藤蔓 + 可选瀑布，上下轻浮。"""
     rnd = random.Random(seed)
     grass = grass or PALETTE["grass"]
@@ -309,9 +442,9 @@ def floating_island(cx, cy, w, seed=6, bob=4, dur=7, grass=None, rock="#7a6a55",
     bot_d = _smooth_path(bot_pts) + " Z"
     parts = [
         fill_path(bot_d, rock),
-        stroke(bot_d, PALETTE["ink"], 1.6, opacity=0.5),
+        stroke(bot_d, PALETTE["ink"], 1.5, opacity=ink_opacity),
         fill_path(top_d, grass),
-        stroke(top_d, grass_deep, 1.8, opacity=0.8),
+        stroke(top_d, grass_deep, 1.7, opacity=0.8),
     ]
     # 岩层纹理
     for i in range(3):
@@ -319,7 +452,7 @@ def floating_island(cx, cy, w, seed=6, bob=4, dur=7, grass=None, rock="#7a6a55",
         xw = w * (0.36 - 0.09 * i)
         parts.append(stroke(wobbly_line(cx - xw, y, cx + xw, y,
                                         seed=seed * 5 + i, amp=1.2),
-                            PALETTE["ink"], 1.0, opacity=0.30))
+                            PALETTE["ink"], 1.0, opacity=0.28))
     # 草皮边缘的高光与垂落藤蔓
     parts.append(stroke(wobbly_line(cx - w * 0.42, cy + 2, cx + w * 0.42,
                                     cy + 2, seed=seed + 41, amp=1.5),
@@ -356,15 +489,51 @@ def floating_island(cx, cy, w, seed=6, bob=4, dur=7, grass=None, rock="#7a6a55",
             f'keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/></g>')
 
 
-def hills(w, base_y, amp, color, seed=8, opacity=1.0):
+def hills(w, base_y, amp, color, seed=8, opacity=1.0, n=7, depth=400):
     """远景草原丘陵剪影。"""
     rnd = random.Random(seed)
     pts = [(0, base_y + rnd.uniform(-amp, amp))]
-    n = 7
     for i in range(1, n + 1):
         pts.append((w * i / n, base_y + rnd.uniform(-amp, amp)))
-    d = _smooth_path(pts) + f" L {w} {base_y + 400} L 0 {base_y + 400} Z"
+    d = _smooth_path(pts) + f" L {w} {base_y + depth} L 0 {base_y + depth} Z"
     return fill_path(d, color, opacity)
+
+
+def ridge(w, base_y, amp, color, seed=8, opacity=1.0, n=13, depth=400):
+    """远山棱线：起伏更密、峰更尖，用于大气透视的最远层。"""
+    rnd = random.Random(seed)
+    pts = [(0, base_y + rnd.uniform(-amp * 0.3, amp * 0.3))]
+    for i in range(1, n + 1):
+        peak = amp if i % 2 else amp * 0.35
+        pts.append((w * i / n + rnd.uniform(-w / n * 0.25, w / n * 0.25),
+                    base_y - rnd.uniform(0, peak)))
+    pts.append((w, base_y + rnd.uniform(-amp * 0.3, amp * 0.3)))
+    d = "M " + " L ".join(f"{x:.1f} {y:.1f}" for x, y in pts) \
+        + f" L {w} {base_y + depth} L 0 {base_y + depth} Z"
+    return fill_path(d, color, opacity)
+
+
+def mist_band(x, y, w, h, color="#ffffff", opacity=0.5, blur="wcblur2"):
+    """横向薄雾：上下渐隐的柔色带，用来分隔景深层。"""
+    gid = uid("mist")
+    return (f'<linearGradient id="{gid}" x1="0" y1="0" x2="0" y2="1">'
+            f'<stop offset="0" stop-color="{color}" stop-opacity="0"/>'
+            f'<stop offset="0.5" stop-color="{color}" stop-opacity="{opacity}"/>'
+            f'<stop offset="1" stop-color="{color}" stop-opacity="0"/>'
+            f'</linearGradient>'
+            f'<rect x="{x}" y="{y}" width="{w}" height="{h}" '
+            f'fill="url(#{gid})" filter="url(#{blur})"/>')
+
+
+def horizon_glow(cx, cy, rx, ry, color, opacity=0.5):
+    """地平线柔光（径向渐变椭圆）。"""
+    gid = uid("hg")
+    return (f'<radialGradient id="{gid}" cx="50%" cy="50%" r="50%">'
+            f'<stop offset="0" stop-color="{color}" stop-opacity="{opacity}"/>'
+            f'<stop offset="1" stop-color="{color}" stop-opacity="0"/>'
+            f'</radialGradient>'
+            f'<ellipse cx="{cx}" cy="{cy}" rx="{rx}" ry="{ry}" '
+            f'fill="url(#{gid})"/>')
 
 
 def grass_tufts(w, y_base, count, seed=9, color=None, y_jitter=6):
@@ -387,7 +556,48 @@ def grass_tufts(w, y_base, count, seed=9, color=None, y_jitter=6):
     return "".join(parts)
 
 
+def birds(specs, color, sw=1.5, opacity=0.8):
+    """远处飞鸟：一组小 V 形。specs = [(x, y, scale), ...]"""
+    parts = []
+    for i, (bx, by, s) in enumerate(specs):
+        parts.append(stroke(
+            f"M {bx - 7 * s:.1f} {by:.1f} Q {bx - 3 * s:.1f} {by - 5 * s:.1f} "
+            f"{bx:.1f} {by - 1.5 * s:.1f} Q {bx + 3 * s:.1f} {by - 5 * s:.1f} "
+            f"{bx + 7 * s:.1f} {by:.1f}",
+            color, sw * s, opacity=max(0.2, opacity - i * 0.12)))
+    return "".join(parts)
+
+
 # ================================================================== 文字 ==
+
+_METRICS = None
+
+
+def _metrics():
+    """字符 → 字宽/em；来自 subset_font.py 导出的 metrics.json。"""
+    global _METRICS
+    if _METRICS is None:
+        _METRICS = {}
+        here = Path(__file__).resolve().parent
+        for p in (here / "fonts" / "wenkai-medium.metrics.json",
+                  here / "wenkai-medium.metrics.json"):
+            if p.exists():
+                _METRICS = json.loads(p.read_text(encoding="utf-8"))
+                break
+    return _METRICS
+
+
+def text_w(s, size, spacing=0.0):
+    """估算文本渲染宽度（有字宽表时精确，否则按 CJK 1em / 拉丁 0.56em）。"""
+    m = _metrics()
+    w = 0.0
+    for ch in s:
+        adv = m.get(ch)
+        if adv is None:
+            adv = 1.0 if ord(ch) > 0x2E7F else (0.3 if ch == " " else 0.56)
+        w += adv * size
+    return w + spacing * len(s)
+
 
 def font_style(font_b64):
     """内嵌子集化字体的 <style> 块。"""
@@ -408,13 +618,33 @@ def text(x, y, s, size, color=None, anchor="middle", weight=None,
             f'{s}</text>')
 
 
+def chip(x, y, label, size, ink, accent, seed=1, pad=13, h=None,
+         fill="#ffffff", fill_opacity=0.55, tint_opacity=0.12, sw=1.3,
+         edge_opacity=0.6):
+    """自适应宽度的手绘标签。返回 (svg, width)。"""
+    h = h or size * 2.2
+    w = text_w(label, size) + pad * 2
+    d = wobbly_rounded_rect_d(x, y, w, h, 8, seed=seed, amp=0.8)
+    parts = [fill_path(d, fill, fill_opacity),
+             fill_path(d, accent, tint_opacity),
+             stroke(d, ink, sw, opacity=edge_opacity),
+             text(x + w / 2, y + h / 2 + size * 0.36, label, size, color=ink)]
+    return "".join(parts), w
+
+
 # ================================================================== 骨架 ==
 
-def svg_doc(w, h, body, font_b64=None, title="", grain=True):
+def svg_doc(w, h, body, font_b64=None, title="", grain=True, defs_extra=""):
     head = (f'<svg xmlns="http://www.w3.org/2000/svg" '
             f'viewBox="0 0 {w} {h}" width="{w}" height="{h}" '
             f'role="img" aria-label="{title}">')
     font = font_style(font_b64) if font_b64 else ""
-    tail = grain_rect(w, h) if grain else ""
-    return (f'{head}{font}<defs>{defs_common()}</defs>'
+    if grain is True:
+        tail = grain_rect(w, h)
+    elif grain:  # (x, y, w, h, rx)
+        gx, gy, gw, gh, grx = grain
+        tail = grain_rect(gw, gh, gx, gy, grx)
+    else:
+        tail = ""
+    return (f'{head}{font}<defs>{defs_common()}{defs_extra}</defs>'
             f'{body}{tail}</svg>')

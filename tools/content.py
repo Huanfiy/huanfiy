@@ -7,25 +7,34 @@ subset_font.py 据此收集字符集做字体子集化。
 
 # ---------------------------------------------------------------- palette --
 PALETTE = {
-    "ink":        "#43382b",   # 褐墨线条
-    "ink_soft":   "#6b5d4a",
-    "paper":      "#f9f1de",   # 水彩纸底
-    "paper_deep": "#f1e4c8",
+    "ink":        "#4a4033",   # 褐墨线条
+    "ink_soft":   "#7a6c58",
+    "paper":      "#f9f3e6",   # 水彩纸底
+    "paper_deep": "#efe4cc",
     "grass":      "#8cba72",
     "grass_deep": "#679458",
     "roxy":       "#4f79b3",   # 主题蓝
     "roxy_deep":  "#2f4f7d",
     "glow":       "#7fd6e8",   # 魔法青
-    "gold":       "#e5b566",
-    "red":        "#cf6a5e",
+    "gold":       "#e0b263",
+    "red":        "#d1786c",
+    "lavender":   "#a99bc9",
     "white":      "#fdfbf5",
 }
 
+# 透明底资产（章节标题 / 标签条）在浅色与深色主题下的墨色
+THEME_INK = {
+    "light": {"ink": PALETTE["ink"], "soft": PALETTE["ink_soft"],
+              "line": "#a9997f", "chip": "#ffffff"},
+    "dark":  {"ink": "#ebe3d2", "soft": "#b3a892",
+              "line": "#6d6552", "chip": "#1b2230"},
+}
+
 SKY = {
-    "dawn":  ("#a9bede", "#f4dfc2", "#e8c9a8"),
-    "day":   ("#7fc0e4", "#c8e6f2", "#e9f5ef"),
-    "dusk":  ("#d97f56", "#efb98a", "#f2d9a8"),
-    "night": ("#141f3a", "#2a3c64", "#41557f"),
+    "dawn":  ("#b4c4df", "#f0dcc8", "#f8e8d2"),
+    "day":   ("#86c2e5", "#cbe5f3", "#eef7f1"),
+    "dusk":  ("#a591b5", "#e8b898", "#f5dab2"),
+    "night": ("#121a33", "#26375c", "#465c86"),
 }
 
 # GitHub linguist 近似色，stats 卡语言条用
@@ -34,7 +43,7 @@ LANG_COLORS = {
     "Shell": "#89e051", "Lua": "#000080", "HTML": "#e34c26",
     "CSS": "#663399", "CMake": "#DA3434", "JavaScript": "#f1e05a",
     "Makefile": "#427819", "Dockerfile": "#384d54", "TypeScript": "#3178c6",
-    "Assembly": "#6E4C13", "Vim Script": "#199f4b",
+    "Assembly": "#6E4C13", "Vim Script": "#199f4b", "Rust": "#dea584",
 }
 LANG_FALLBACK_COLOR = "#9a8f7d"
 
@@ -42,11 +51,20 @@ LANG_FALLBACK_COLOR = "#9a8f7d"
 HERO_TITLE = "Huanfly"
 HERO_MOTTO = "今天也要拿出真本事~"
 HERO_SUB = "Embedded · Linux · AI tooling"
-HERO_CHIPS = ["嵌入式", "Linux", "AI 工具链", "自动化"]
+
+# --------------------------------------------------------------- 章节标题 --
+# (slug, 中文标题, 英文小字, 图标)
+SECTIONS = [
+    ("about", "关于我", "About", "quill"),
+    ("stack", "技术栈", "Tech Stack", "grimoire"),
+    ("works", "精选作品", "Selected Works", "chest"),
+    ("stats", "冒险者档案", "Adventurer Profile", "orb"),
+]
+
+# --------------------------------------------------------- 关于我 · 标签条 --
+FOCUS_TAGS = ["嵌入式", "Linux", "输入法", "AI 工具链"]
 
 # ------------------------------------------------------------ stack panel --
-STACK_TITLE = "技 术 栈"
-STACK_TITLE_SUB = "Grimoire of Craft"
 STACK_GROUPS = [
     ("嵌入式", "roxy", ["C", "C++", "STM32", "ESP32", "RTOS", "USB"]),
     ("系统与工具", "grass_deep", ["Linux", "zsh", "Git", "CMake", "Docker", "Neovim"]),
@@ -86,8 +104,6 @@ FOOTER_QUOTE = "把手上的事做好，把本事留在作品里。"
 FOOTER_SIGN = "— Huanfly"
 
 # -------------------------------------------------------------- stats 卡 --
-STATS_TITLE = "冒险者档案"
-STATS_SUB = "Adventurer Profile"
 STATS_LABELS = {
     "repos": "公开仓库",
     "stars": "获星",
@@ -102,10 +118,11 @@ STATS_LABELS = {
 def charset():
     """收集所有 SVG 文字用到的字符 + 全量可打印 ASCII（动态数字/语言名）。"""
     chars = set(chr(c) for c in range(0x20, 0x7F))
-    texts = [HERO_TITLE, HERO_MOTTO, HERO_SUB, STACK_TITLE, STACK_TITLE_SUB,
-             FOOTER_QUOTE, FOOTER_SIGN, STATS_TITLE, STATS_SUB]
-    texts += HERO_CHIPS
+    texts = [HERO_TITLE, HERO_MOTTO, HERO_SUB, FOOTER_QUOTE, FOOTER_SIGN]
+    texts += FOCUS_TAGS
     texts += list(STATS_LABELS.values())
+    for _slug, zh, en, _icon in SECTIONS:
+        texts += [zh, en]
     for name, _c, items in STACK_GROUPS:
         texts.append(name)
         texts += items
