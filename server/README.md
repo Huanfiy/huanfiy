@@ -9,7 +9,7 @@
 | --- | --- | --- |
 | `/gh/hero.svg` | 手绘横幅，按北京时间切换黎明(5-8)/白天(8-17)/黄昏(17-20)/夜晚 | 15 min |
 | `/gh/stats.svg` | GitHub 公开统计卡，后台每 30 min 刷新，失败保留旧值 | 30 min |
-| `/gh/keyart` | 关于我的素材位：`official/` 目录有图返回最新一张，否则回退原创插画 | 60 min |
+| `/gh/keyart` | 关于我的素材位：`official/` 目录有图返回最新一张，否则回退原创插画（480×480） | 60 min |
 | `/gh/health` | 健康检查 | — |
 
 ## 部署 / 更新
@@ -20,15 +20,18 @@
 bash server/deploy.sh
 ```
 
-脚本会同步 `tools/{artlib,cards,content}.py`、字体子集、`server.py`、
-回退插画到 `/home/ubuntu/apps/gh-cards/`，安装并重启 systemd 服务
-`gh-cards`，最后做健康检查。
+脚本会同步 `tools/{artlib,cards,content}.py`、字体子集（`.b64` 与
+`.metrics.json` 字宽表）、`server.py`、回退插画到
+`/home/ubuntu/apps/gh-cards/`，安装并重启 systemd 服务 `gh-cards`，
+最后做健康检查。
 
 ## 素材位换图
 
 把图片（png/jpg/webp/gif/svg）丢进 VPS 的
 `/home/ubuntu/apps/gh-cards/official/` 即可，文件名任意，取 mtime 最新的一张；
 删掉所有图则回退到原创插画。GitHub camo 有缓存，换图后最长约 1 小时生效。
+README 里该图以 220px 宽浮动在「关于我」右侧，建议用接近正方形的图，
+过高会在文字下方留白。
 
 ```bash
 scp keyart.jpg ubuntu@huanfly.com:/home/ubuntu/apps/gh-cards/official/
@@ -45,8 +48,23 @@ cd tools && ../.venv/bin/python genart.py fonts/wenkai-medium.b64
 ```
 
 字体子集来自[霞鹜文楷](https://github.com/lxgw/LxgwWenKai)（OFL，
-许可见 `tools/fonts/OFL.txt`）。改了文字记得先重跑子集化再生成资产，
+许可见 `tools/fonts/OFL.txt`；源字体 `LXGWWenKai-Medium.ttf` 从其
+Releases 下载，不入库）。`subset_font.py` 同时导出
+`wenkai-medium.metrics.json`（字符 → 字宽/em），`artlib.text_w()` 用它做
+自适应宽度的标签与下划线排版。改了文字记得先重跑子集化再生成资产，
 并执行一次 `server/deploy.sh` 让动态卡同步新字体/文案。
+
+静态资产一览（`genart.py` 会删除不再生成的旧文件）：
+
+| 文件 | 用途 |
+| --- | --- |
+| `h-{about,stack,works,stats}-{light,dark}.svg` | 透明底章节标题，README 用 `<picture>` 按主题切换 |
+| `tags-{light,dark}.svg` | 关于我下方的领域标签条 |
+| `stack-panel.svg` | 技术栈面板 |
+| `card-*.svg` | 精选作品竖版卡（320×236，三张并排各 32%） |
+| `footer.svg` | 页脚暮色场景 |
+| `fallback-art.svg` | 素材位回退插画（同步到服务端） |
+| `hero-fallback.svg` / `stats-sample.svg` | 动态卡的静态样张，便于本地预览 |
 
 ## 运维排查
 

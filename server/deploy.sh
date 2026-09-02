@@ -6,7 +6,7 @@ APP=/home/ubuntu/apps/gh-cards
 
 ssh "$HOST" "mkdir -p $APP/official"
 scp tools/artlib.py tools/cards.py tools/content.py \
-    tools/fonts/wenkai-medium.b64 \
+    tools/fonts/wenkai-medium.b64 tools/fonts/wenkai-medium.metrics.json \
     server/server.py \
     assets/fallback-art.svg \
     "$HOST:$APP/"

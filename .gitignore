@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .venv/
+tools/fonts/*.woff2
+tools/fonts/*.chars.txt
