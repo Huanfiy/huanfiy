@@ -74,12 +74,12 @@ STACK_GROUPS = [
 # ---------------------------------------------------------------- 项目卡片 --
 PROJECT_CARDS = [
     {
-        "slug": "vocotype",
-        "repo": "VocoType-linux",
-        "desc": "Linux 离线中文语音输入法",
-        "desc2": "FunASR · 约 0.1s 上屏 · IBus / Fcitx5",
-        "lang": "Python",
-        "doodle": "mic",
+        "slug": "ai-usage",
+        "repo": "ai-usage",
+        "desc": "AI 用量监控平台",
+        "desc2": "Rust · 简洁高性能 · 看板 + 采集端",
+        "lang": "Rust",
+        "doodle": "dashboard",
     },
     {
         "slug": "rime-lite",

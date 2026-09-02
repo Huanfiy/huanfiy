@@ -234,25 +234,35 @@ def stack_panel():
 
 # ============================================================== 项目卡片 ==
 
-def _doodle_mic(cx, cy):
-    p = [A.stroke(A.wobbly_rect_d(cx - 9, cy - 22, 18, 28, seed=3, amp=1.0),
+def _doodle_dashboard(cx, cy):
+    """看板：面板 + 呼吸的柱状图 + 折线与亮点。"""
+    p = [A.stroke(A.wobbly_rect_d(cx - 26, cy - 19, 52, 38, seed=3, amp=1.0),
                   PALETTE["ink"], 2.0),
-         A.stroke(f"M {cx - 5} {cy - 15} L {cx + 5} {cy - 15} "
-                  f"M {cx - 5} {cy - 8} L {cx + 5} {cy - 8} "
-                  f"M {cx - 5} {cy - 1} L {cx + 5} {cy - 1}",
-                  PALETTE["ink"], 1.2, opacity=0.55),
-         A.stroke(f"M {cx - 15} {cy - 2} Q {cx - 15} {cy + 14} {cx} {cy + 14} "
-                  f"Q {cx + 15} {cy + 14} {cx + 15} {cy - 2}",
-                  PALETTE["ink"], 2.0),
-         A.stroke(f"M {cx} {cy + 14} L {cx} {cy + 22} M {cx - 8} {cy + 23} "
-                  f"L {cx + 8} {cy + 23}", PALETTE["ink"], 2.0)]
-    for i, r in enumerate((24, 30)):
+         A.stroke(f"M {cx - 26} {cy - 11} L {cx + 26} {cy - 11}",
+                  PALETTE["ink"], 1.2, opacity=0.55)]
+    for i in range(3):
+        p.append(f'<circle cx="{cx - 20 + i * 6}" cy="{cy - 15}" r="1.6" '
+                 f'fill="{PALETTE["ink"]}" opacity="0.5"/>')
+    base = cy + 13
+    for i, h in enumerate((9, 15, 11, 19)):
+        x = cx - 19 + i * 9
         p.append(
-            f'<path d="M {cx + r} {cy - 16} Q {cx + r + 6} {cy - 6} '
-            f'{cx + r} {cy + 4}" fill="none" stroke="{PALETTE["roxy"]}" '
-            f'stroke-width="1.8" stroke-linecap="round" opacity="0.7">'
-            f'<animate attributeName="opacity" values="0.15;0.8;0.15" '
-            f'dur="2.4s" begin="{i * 0.5}s" repeatCount="indefinite"/></path>')
+            f'<rect x="{x}" y="{base - h}" width="6" height="{h}" rx="1.5" '
+            f'fill="{PALETTE["roxy"]}" opacity="0.7">'
+            f'<animate attributeName="height" values="{h};{h - 4};{h}" '
+            f'dur="{3.2 + i * 0.5:.1f}s" repeatCount="indefinite"/>'
+            f'<animate attributeName="y" values="{base - h};{base - h + 4};'
+            f'{base - h}" dur="{3.2 + i * 0.5:.1f}s" repeatCount="indefinite"/>'
+            f'</rect>')
+    p.append(A.stroke(f"M {cx + 19} {cy + 10} L {cx + 19} {cy - 4} "
+                      f"M {cx + 14} {cy - 4} L {cx + 24} {cy - 4} "
+                      f"M {cx + 14} {cy + 1} L {cx + 24} {cy + 1} "
+                      f"M {cx + 14} {cy + 6} L {cx + 24} {cy + 6}",
+                      PALETTE["ink"], 1.1, opacity=0.35))
+    p.append(A.stroke(f"M {cx - 21} {cy + 2} Q {cx - 12} {cy - 6} {cx - 4} {cy - 1} "
+                      f"T {cx + 11} {cy - 8}", PALETTE["gold"], 1.7, opacity=0.9))
+    p.append(A.sparkle(cx + 11, cy - 8, 3.6, color=PALETTE["gold"], seed=14,
+                       dur=2.6, lo=0.4))
     return "".join(p)
 
 
@@ -303,7 +313,7 @@ def project_card(spec, accent):
     cx = W / 2
     body = [A.paper_bg(W, H, rx=14, seed=7, sw=1.7)]
     body.append(A.watercolor_blob(cx, 72, 46, accent, seed=21, opacity=0.13))
-    doodle = {"mic": _doodle_mic, "keyboard": _doodle_keyboard,
+    doodle = {"dashboard": _doodle_dashboard, "keyboard": _doodle_keyboard,
               "terminal": _doodle_terminal}[spec["doodle"]]
     body.append(doodle(cx, 72))
     body.append(A.text(cx, 138, spec["repo"], 21, weight="bold"))
