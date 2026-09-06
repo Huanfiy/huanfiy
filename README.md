@@ -40,7 +40,7 @@
 
 <p align="center">
   <a href="https://github.com/Huanfiy/ai-usage"><img src="./assets/card-ai-usage.svg" width="32%" alt="ai-usage：AI 用量监控平台，Rust，简洁高性能，看板 + 采集端" /></a>
-  <a href="https://github.com/Huanfiy/rime-lite"><img src="./assets/card-rime-lite.svg" width="32%" alt="rime-lite：小而美的 Rime 输入法配置" /></a>
+  <a href="https://github.com/Huanfiy/ai-link"><img src="./assets/card-ai-link.svg" width="32%" alt="ai-link：开源 USB 多功能调试工具，双路串口 / SWD 调试 / 8 路 GPIO" /></a>
   <a href="https://github.com/Huanfiy/oh-my-terminal"><img src="./assets/card-oh-my-terminal.svg" width="32%" alt="oh-my-terminal：优雅的终端套件配置，zsh / tmux / p10k" /></a>
 </p>
 

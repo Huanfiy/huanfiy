@@ -266,24 +266,31 @@ def _doodle_dashboard(cx, cy):
     return "".join(p)
 
 
-def _doodle_keyboard(cx, cy):
-    p = [A.stroke(A.wobbly_rect_d(cx - 26, cy - 8, 52, 26, seed=8, amp=1.0),
-                  PALETTE["ink"], 2.0)]
-    rnd = random.Random(12)
-    for r in range(2):
-        for c in range(6):
-            kx = cx - 21 + c * 8
-            ky = cy - 3 + r * 8
-            p.append(A.stroke(A.wobbly_rect_d(kx, ky, 5.5, 5.5,
-                                              seed=rnd.randint(1, 999),
-                                              amp=0.5),
-                              PALETTE["ink"], 1.0, opacity=0.6))
-    p.append(A.stroke(f"M {cx - 12} {cy + 12} L {cx + 12} {cy + 12}",
-                      PALETTE["ink"], 1.4, opacity=0.7))
-    p.append(f'<rect x="{cx + 18}" y="{cy - 20}" width="7" height="3" '
-             f'fill="{PALETTE["grass_deep"]}"><animate attributeName="opacity" '
-             f'values="1;0;1" dur="1.6s" repeatCount="indefinite"/></rect>')
-    p.append(A.text(cx - 2, cy - 15, "拼", 13, color=PALETTE["grass_deep"]))
+def _doodle_usb_debugger(cx, cy):
+    """USB 调试器：接口 + 芯片 + 多路引脚。"""
+    ink, accent = PALETTE["ink"], PALETTE["grass_deep"]
+    p = [A.stroke(A.wobbly_rect_d(cx - 22, cy - 17, 44, 34, seed=8, amp=1.0),
+                  ink, 2.0),
+         A.stroke(A.wobbly_rect_d(cx - 34, cy - 8, 12, 16, seed=9, amp=0.5),
+                  ink, 1.7),
+         A.stroke(f"M {cx - 30} {cy - 4} L {cx - 26} {cy - 4} "
+                  f"M {cx - 30} {cy + 4} L {cx - 26} {cy + 4}",
+                  ink, 1.3, opacity=0.65),
+         A.stroke(A.wobbly_rect_d(cx - 9, cy - 9, 18, 18, seed=10, amp=0.6),
+                  ink, 1.6)]
+    for off in (-6, 0, 6):
+        p.append(A.stroke(f"M {cx + off} {cy - 9} L {cx + off} {cy - 13} "
+                          f"M {cx + off} {cy + 9} L {cx + off} {cy + 13}",
+                          ink, 1.1, opacity=0.75))
+        p.append(A.stroke(f"M {cx - 13} {cy + off} L {cx - 9} {cy + off} "
+                          f"M {cx + 9} {cy + off} L {cx + 13} {cy + off}",
+                          ink, 1.1, opacity=0.75))
+    for off in (-10, 0, 10):
+        p.append(A.stroke(f"M {cx + 22} {cy + off} L {cx + 34} {cy + off}",
+                          accent, 1.8))
+        p.append(f'<circle cx="{cx + 34}" cy="{cy + off}" r="2.2" '
+                 f'fill="{accent}"/>')
+    p.append(A.sparkle(cx, cy, 4.5, color=accent, seed=12, dur=2.8, lo=0.4))
     return "".join(p)
 
 
@@ -313,7 +320,7 @@ def project_card(spec, accent):
     cx = W / 2
     body = [A.paper_bg(W, H, rx=14, seed=7, sw=1.7)]
     body.append(A.watercolor_blob(cx, 72, 46, accent, seed=21, opacity=0.13))
-    doodle = {"dashboard": _doodle_dashboard, "keyboard": _doodle_keyboard,
+    doodle = {"dashboard": _doodle_dashboard, "usb_debugger": _doodle_usb_debugger,
               "terminal": _doodle_terminal}[spec["doodle"]]
     body.append(doodle(cx, 72))
     body.append(A.text(cx, 138, spec["repo"], 21, weight="bold"))

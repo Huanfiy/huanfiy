@@ -82,12 +82,12 @@ PROJECT_CARDS = [
         "doodle": "dashboard",
     },
     {
-        "slug": "rime-lite",
-        "repo": "rime-lite",
-        "desc": "小而美的 Rime 输入法配置",
-        "desc2": "开箱即用 · 简洁词库 · 长期维护",
-        "lang": "Shell",
-        "doodle": "keyboard",
+        "slug": "ai-link",
+        "repo": "ai-link",
+        "desc": "开源 USB 多功能调试工具",
+        "desc2": "双路串口 · SWD 调试 · 8 路 GPIO",
+        "lang": "C",
+        "doodle": "usb_debugger",
     },
     {
         "slug": "oh-my-terminal",
