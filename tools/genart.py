@@ -319,10 +319,19 @@ def project_card(spec, accent):
     W, H = 320, 236
     cx = W / 2
     body = [A.paper_bg(W, H, rx=14, seed=7, sw=1.7)]
-    body.append(A.watercolor_blob(cx, 72, 46, accent, seed=21, opacity=0.13))
+    body.append(A.watercolor_blob(cx, 71, 48, accent, seed=21, opacity=0.08))
+    body.append(f'<circle cx="{cx}" cy="71" r="45" fill="none" '
+                f'stroke="{accent}" stroke-width="0.7" opacity="0.25"/>')
+    body.append(A.stroke(f"M {cx - 49} 75 A 49 49 0 0 1 {cx - 13} 24 "
+                         f"M {cx + 49} 67 A 49 49 0 0 1 {cx + 13} 118",
+                         accent, 1.1, opacity=0.4))
+    for dx, dy in [(-44, -24), (44, 24)]:
+        body.append(A.fill_path(f"M {cx+dx} {71+dy-3} l 3 3 -3 3 -3 -3 Z",
+                                PALETTE["gold"], 0.7))
     doodle = {"dashboard": _doodle_dashboard, "usb_debugger": _doodle_usb_debugger,
               "terminal": _doodle_terminal}[spec["doodle"]]
-    body.append(doodle(cx, 72))
+    body.append(f'<g transform="translate({cx} 71) scale(1.25)">'
+                f'{doodle(0, 0)}</g>')
     body.append(A.text(cx, 138, spec["repo"], 21, weight="bold"))
     tw = A.text_w(spec["repo"], 21)
     body.append(A.stroke(A.wobbly_line(cx - tw / 2, 148, cx + tw / 2, 148,
@@ -330,6 +339,8 @@ def project_card(spec, accent):
                          accent, 2.0, opacity=0.8))
     body.append(A.text(cx, 172, spec["desc"], 15))
     body.append(A.text(cx, 193, spec["desc2"], 12, color=PALETTE["ink_soft"]))
+    body.append(A.fade_line(39, 203, W - 39, accent, w=0.65, opacity=0.25,
+                            seed=30, fade_in=0.25, fade_out=0.25))
     # 语言徽章（居中）
     lcolor = LANG_COLORS.get(spec["lang"], PALETTE["ink_soft"])
     lw = A.text_w(spec["lang"], 12)
@@ -348,30 +359,6 @@ def project_card(spec, accent):
 
 
 # ================================================================== 页脚 ==
-
-def _traveler(cx, cy, scale=1.0):
-    """持杖旅人剪影（原创小人）：斗篷 + 法杖 + 顶端光球。"""
-    s = scale
-    ink = "#3c3529"
-    p = []
-    p.append(A.fill_path(
-        f"M {cx} {cy - 30*s} Q {cx + 12*s} {cy - 26*s} {cx + 11*s} {cy - 8*s} "
-        f"Q {cx + 13*s} {cy} {cx + 9*s} {cy} L {cx - 10*s} {cy} "
-        f"Q {cx - 13*s} {cy - 2*s} {cx - 11*s} {cy - 10*s} "
-        f"Q {cx - 12*s} {cy - 26*s} {cx} {cy - 30*s} Z", ink, 0.92))
-    p.append(A.fill_path(A.wobbly_circle_d(cx, cy - 36*s, 7.5*s, seed=3,
-                                           irregular=0.06), ink, 0.92))
-    p.append(A.fill_path(
-        f"M {cx - 6*s} {cy - 41*s} Q {cx} {cy - 48*s} {cx + 7*s} {cy - 39*s} "
-        f"Q {cx + 2*s} {cy - 44*s} {cx - 6*s} {cy - 41*s} Z", ink, 0.92))
-    sx = cx + 17 * s
-    p.append(A.stroke(f"M {sx} {cy} L {sx + 3*s} {cy - 46*s}", ink, 2.6 * s))
-    p.append(f'<circle cx="{sx + 3.6*s}" cy="{cy - 50*s}" r="{4.2*s}" '
-             f'fill="{PALETTE["glow"]}" filter="url(#bigglow)">'
-             f'<animate attributeName="opacity" values="0.55;1;0.55" '
-             f'dur="3.6s" repeatCount="indefinite"/></circle>')
-    return "".join(p)
-
 
 def footer():
     W, H = 1000, 200
@@ -404,9 +391,23 @@ def footer():
     body.append(A.hills(W, 138, 12, "#b0b57a", seed=73, opacity=0.8))
     body.append(A.mist_band(0, 132, W, 24, "#f8e6cc", opacity=0.4))
     body.append(A.hills(W, 156, 9, "#8faa6a", seed=74, opacity=0.95))
-    body.append(A.hills(W, 172, 7, "#6f9455", seed=75))
-    body.append(A.grass_tufts(W, 190, 30, seed=76, color="#4d6e3f"))
-    body.append(_traveler(500, 176, 1.0))
+    body.append(A.hills(W, 174, 10, "#78915f", seed=75))
+    body.append(A.fill_path("M 738 139 Q 693 148 714 158 Q 734 170 675 178 "
+                           "Q 628 185 637 200 H 551 Q 568 183 650 173 "
+                           "Q 711 166 698 158 Q 681 149 736 139 Z", "#d1c6a0", 0.72))
+    body.append(A.stroke("M 720 153 h 12 M 707 163 h 14 M 665 178 h 22 "
+                         "M 610 191 h 25", "#fff0c9", 1, opacity=0.65))
+    for px, py, sc in [(53, 165, .36), (69, 164, .55), (92, 166, .41),
+                        (859, 163, .4), (877, 165, .58), (901, 166, .48)]:
+        body.append(A.pine(px, py, sc, "#667b60", "#52664f"))
+    body.append(A.fill_path("M 0 184 Q 220 163 377 181 Q 432 173 535 185 "
+                           "L 559 200 H 0 Z M 764 200 Q 886 179 1000 178 V 200 Z",
+                           "#57754f"))
+    body.append(A.meadow(W, 198, seed=76, color="#3d604b", count=30,
+                         flower="#eee2b8", height=18))
+    body.append(A.botanical(27, 204, .68, color="#3d604b", flower="#e8dbaa"))
+    body.append(A.botanical(976, 207, .82, color="#3d604b", flower="#e8dbaa", flip=True))
+    body.append(A.traveler(508, 188, .83, cloak="#3e575a"))
     rnd = random.Random(7)
     for i in range(8):
         body.append(A.dot_particle(rnd.uniform(80, W - 80),
@@ -418,8 +419,7 @@ def footer():
     # 文字
     body.append(A.text(500, 62, FOOTER_QUOTE, 20, color="#463628", spacing="2"))
     body.append(A.text(500, 88, FOOTER_SIGN, 13.5, color="#463628", opacity=0.8))
-    body.append(A.stroke(A.wobbly_rect_d(8, 8, W - 16, H - 16, seed=15, amp=1.3),
-                         "#463628", 1.8, opacity=0.45))
+    body.append(A.ornament_frame(W, H, "#594838", inset=10, opacity=0.42))
     body.append('</g>')
     return A.svg_doc(W, H, "".join(body), font_b64=FONT_M, title="footer scene")
 
@@ -427,100 +427,97 @@ def footer():
 # ======================================================== 素材位回退插画 ==
 
 def fallback_art():
-    """官方素材位的原创回退插画：悬浮魔导书 + 光球 + 魔法阵。"""
+    """原创魔导书插画：铜金星轨、立体书页、织带与植物标本。"""
     W, H = 480, 480
-    cx = W / 2
-    body = [A.paper_bg(W, H, rx=14, seed=17, sw=1.8)]
-    body.append(A.watercolor_blob(cx, 220, 140, PALETTE["roxy"], seed=91,
-                                  opacity=0.08, layers=3))
-    body.append(A.watercolor_blob(110, 390, 80, PALETTE["gold"], seed=92,
-                                  opacity=0.08, layers=2))
-    body.append(A.watercolor_blob(380, 400, 64, PALETTE["grass"], seed=93,
-                                  opacity=0.06, layers=2))
-    body.append(A.magic_circle(cx, 248, 158, seed=19, opacity=0.28,
-                               dur_outer=90, dur_inner=70,
-                               color=PALETTE["roxy"], sw=1.3))
-    by = 284  # 书脊底部
-    book = []
-    book.append(A.fill_path(
-        f"M {cx} {by + 10} Q {cx - 60} {by - 4} {cx - 118} {by + 4} "
-        f"L {cx - 118} {by - 40} Q {cx - 60} {by - 50} {cx} {by - 36} "
-        f"Q {cx + 60} {by - 50} {cx + 118} {by - 40} L {cx + 118} {by + 4} "
-        f"Q {cx + 60} {by - 4} {cx} {by + 10} Z", PALETTE["roxy"], 0.85))
+    ink, blue, gold = PALETTE["ink_soft"], PALETTE["roxy"], PALETTE["gold"]
+    body = [A.paper_bg(W, H, rx=18, seed=17, sw=1.5)]
+    body.append(A.watercolor_blob(240, 221, 147, blue, seed=91, opacity=0.055, layers=3))
+    body.append(A.watercolor_blob(135, 375, 83, gold, seed=92, opacity=0.065))
+    body.append(A.magic_circle(240, 232, 162, seed=19, opacity=0.2,
+                               dur_outer=120, dur_inner=95, color=gold, sw=1.0))
+    body.append('<circle cx="240" cy="232" r="143" fill="none" '
+                'stroke="#9bafae" stroke-width="0.7" opacity="0.3"/>')
+    # 星座微光只放在书页上方，避免背景纹样削弱主体。
+    body.append(A.stroke("M 123 142 L 160 111 185 134 M 311 118 L 351 149 335 184",
+                         blue, 0.8, opacity=0.36, dash="2 5"))
+    for i, (x, y) in enumerate([(123, 142), (160, 111), (185, 134),
+                                (311, 118), (351, 149), (335, 184)]):
+        body.append(A.sparkle(x, y, 3.5 if i % 2 else 5, color=gold,
+                              seed=90+i, delay=i * .5, lo=0.45))
+    body.append(A.horizon_glow(240, 369, 119, 14, blue, 0.15))
+    body.append(A.botanical(88, 402, 1.23, color="#8a9c80", flower="#fdf7e6"))
+    body.append(A.botanical(392, 402, 1.23, color="#8a9c80", flower="#fdf7e6", flip=True))
+    body.append(A.stroke("M 116 398 Q 240 427 364 398", gold, 0.8, opacity=0.45))
+    body.append(A.sparkle(240, 407, 5, color=gold, seed=80, lo=0.65, dur=5))
+
+    book = [A.horizon_glow(240, 235, 86, 74, "#b1e8df", 0.55)]
+    cover = ("M 240 252 Q 186 223 119 233 L 105 302 Q 176 294 240 325 "
+             "Q 304 294 375 302 L 361 233 Q 294 223 240 252 Z")
+    book += [A.fill_path(cover, "#456880"), A.stroke(cover, "#345368", 1.8),
+             A.stroke("M 110 304 Q 184 302 240 330 Q 296 302 370 304", gold, 2.1),
+             A.fill_path("M 235 255 Q 218 296 229 348 L 239 342 248 349 "
+                         "Q 236 302 247 257 Z", "#b66d63")]
     for sign in (-1, 1):
-        book.append(A.fill_path(
-            f"M {cx} {by} Q {cx + sign * 55} {by - 14} {cx + sign * 106} "
-            f"{by - 6} L {cx + sign * 106} {by - 44} "
-            f"Q {cx + sign * 55} {by - 56} {cx} {by - 42} Z", "#fdf8ea", 1.0))
-        book.append(A.stroke(
-            f"M {cx} {by} Q {cx + sign * 55} {by - 14} {cx + sign * 106} "
-            f"{by - 6} L {cx + sign * 106} {by - 44} "
-            f"Q {cx + sign * 55} {by - 56} {cx} {by - 42}",
-            PALETTE["ink"], 2.0))
-        for li in range(3):
-            yy = by - 36 + li * 9
-            book.append(A.stroke(A.wobbly_line(
-                cx + sign * 14, yy + 3, cx + sign * 88, yy - 2,
-                seed=200 + li * 7 + (0 if sign < 0 else 3), amp=0.8),
-                PALETTE["ink_soft"], 1.1, opacity=0.5))
-    book.append(A.stroke(f"M {cx} {by} L {cx} {by - 42}", PALETTE["ink"], 2.0,
-                         opacity=0.8))
-    book.append(f'<circle cx="{cx}" cy="{by - 96}" r="15" '
-                f'fill="{PALETTE["glow"]}" opacity="0.9" '
-                f'filter="url(#bigglow)">'
-                f'<animate attributeName="r" values="13.5;16;13.5" dur="4s" '
-                f'repeatCount="indefinite"/></circle>')
-    book.append(f'<circle cx="{cx - 4}" cy="{by - 100}" r="4.5" '
-                f'fill="#ffffff" opacity="0.9"/>')
-    for i in range(4):
-        rx = cx - 54 + i * 36
-        rune_d = A._rune(rx, by - 64, 6, 300 + i)
-        book.append(
-            f'<path d="{rune_d}" fill="none" stroke="{PALETTE["roxy"]}" '
-            f'stroke-width="1.5" stroke-linecap="round" opacity="0">'
-            f'<animate attributeName="opacity" values="0;0.8;0" '
-            f'dur="{4.5 + i * 0.8:.1f}s" begin="{i * 1.1:.1f}s" '
-            f'repeatCount="indefinite"/>'
-            f'<animateTransform attributeName="transform" type="translate" '
-            f'values="0 0; 0 -26" dur="{4.5 + i * 0.8:.1f}s" '
-            f'begin="{i * 1.1:.1f}s" repeatCount="indefinite"/></path>')
+        # 镜像绘制两翼，书脊向下收束而纸张边缘微微翻卷。
+        page = [A.fill_path("M 0 0 Q 51 -28 116 -17 L 128 49 "
+                            "Q 57 43 0 72 Z", "#dbceb0")]
+        for offset in (8, 5, 2):
+            page.append(A.stroke(f"M 1 {61+offset} Q 58 {34+offset} 123 {42+offset}",
+                                  "#9c947d", .8, opacity=0.55))
+        top = "M 0 -3 Q 56 -33 113 -23 L 124 42 Q 57 35 0 64 Z"
+        page += [A.fill_path(top, "#fff9e8"), A.stroke(top, "#a9997f", 1.1),
+                 A.fill_path("M 0 -3 Q 7 19 0 64 L 12 55 Q 14 22 8 -7 Z", "#b4a98c", 0.2),
+                 A.stroke("M 15 -4 Q 64 -23 106 -16", gold, 0.9, opacity=0.7),
+                 A.stroke("M 17 49 Q 69 30 115 34", gold, 0.8, opacity=0.55)]
+        # 一页是星图，另一页是细密手稿。
+        if sign == -1:
+            page.append(A.magic_circle(65, 13, 20, color=blue, seed=13,
+                                       opacity=0.6, sw=0.8, dur_outer=110, dur_inner=90))
+            page.append(A.stroke("M 26 40 Q 45 32 59 32 M 75 28 Q 90 25 105 28",
+                                  ink, 1, opacity=0.5))
+        else:
+            for i in range(5):
+                yy = 1 + i * 7
+                end = 96 if i % 2 else 105
+                page.append(A.stroke(f"M 25 {yy} Q 66 {yy-15} {end} {yy-9}",
+                                      ink, .9, opacity=0.5))
+            page.append(A.fill_path("M 89 -18 L 99 -19 103 -1 96 -4 91 1 Z", blue, 0.7))
+        page.append(A.stroke("M 105 -20 L 110 -19 112 -10 M 115 35 L 121 36 120 29",
+                              gold, 2.2, opacity=0.9))
+        book.append(f'<g transform="translate(240 246) scale({sign} 1)">'
+                    f'{"".join(page)}</g>')
+    book.append(A.stroke("M 240 245 Q 234 274 240 312", "#a99b7d", 1.3))
+    # 渐变光球和倾斜轨道，靠轮廓与高光塑造体积。
+    book.append('<defs><radialGradient id="book-orb" cx="32%" cy="26%" r="75%">'
+                '<stop stop-color="#f7fff3"/><stop offset="0.4" stop-color="#b7eee1"/>'
+                '<stop offset="0.78" stop-color="#76bec8"/>'
+                '<stop offset="1" stop-color="#6798b7"/></radialGradient></defs>')
+    book.append(A.horizon_glow(240, 168, 64, 64, "#9fdeda", 0.35))
+    book.append('<circle cx="240" cy="168" r="24" fill="url(#book-orb)"/>')
+    book.append('<ellipse cx="240" cy="168" rx="44" ry="12" '
+                'transform="rotate(-24 240 168)" fill="none" '
+                'stroke="#b99b62" stroke-width="1.2" opacity="0.8"/>')
+    book.append(A.stroke("M 226 163 Q 228 153 240 152", "#ffffff", 2.1, opacity=0.85))
+    book.append(A.sparkle(274, 151, 5, color=gold, seed=32, dur=4, lo=0.55))
+    book.append(A.stroke("M 234 203 Q 216 216 235 230 M 247 207 Q 257 220 246 235",
+                         blue, 1, opacity=0.45, dash="2 5"))
+    for i in range(5):
+        book.append(A.dot_particle(205 + i * 17, 239 - (i % 2) * 14, 1.6,
+                                   gold, seed=700+i, rise=24))
     body.append(f'<g>{"".join(book)}'
-                f'<animateTransform attributeName="transform" '
-                f'type="translate" values="0 0; 0 -9; 0 0" dur="6.5s" '
-                f'repeatCount="indefinite" calcMode="spline" '
-                f'keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/></g>')
-    for i, (wx, wy, wr) in enumerate([(108, 160, 9), (378, 140, 7),
-                                      (366, 300, 6), (100, 316, 5)]):
-        body.append(
-            f'<g><ellipse cx="{wx}" cy="{wy}" rx="{wr}" ry="{wr * 1.15}" '
-            f'fill="{PALETTE["glow"]}" opacity="0.5"/>'
-            f'<ellipse cx="{wx}" cy="{wy}" rx="{wr}" ry="{wr * 1.15}" '
-            f'fill="none" stroke="{PALETTE["roxy"]}" stroke-width="1.4" '
-            f'opacity="0.7"/>'
-            f'<circle cx="{wx - wr * 0.3}" cy="{wy - wr * 0.4}" r="{wr * 0.25}" '
-            f'fill="#ffffff" opacity="0.9"/>'
-            f'<animateTransform attributeName="transform" type="translate" '
-            f'values="0 0; 0 {-8 - i * 2}; 0 0" dur="{5 + i * 1.3:.1f}s" '
-            f'repeatCount="indefinite" calcMode="spline" '
-            f'keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/></g>')
-    rnd = random.Random(31)
-    for i in range(10):
-        body.append(A.dot_particle(rnd.uniform(60, W - 60),
-                                   rnd.uniform(320, 440),
-                                   rnd.uniform(1.2, 2.4), PALETTE["glow"],
-                                   seed=700 + i, rise=rnd.uniform(14, 30)))
-    for i, (sx, sy) in enumerate([(64, 70), (416, 56), (424, 404), (56, 424)]):
-        body.append(A.sparkle(sx, sy, 5, color=PALETTE["gold"], seed=800 + i,
-                              delay=i * 0.8, lo=0.2))
-    return A.svg_doc(W, H, "".join(body), title="original placeholder art",
-                     grain=(4, 4, W - 8, H - 8, 14))
+                '<animateTransform attributeName="transform" type="translate" '
+                'values="0 0; 0 -7; 0 0" dur="8s" repeatCount="indefinite" '
+                'calcMode="spline" keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/></g>')
+    return A.svg_doc(W, H, "".join(body), title="Floating grimoire and celestial garden",
+                     grain=(4, 4, W - 8, H - 8, 18))
 
 
-# =================================================================== main ==
+# =============================================================== 生成入口 ==
 
-if __name__ == "__main__":
-    FONT_M = Path(sys.argv[1]).read_text().strip()
-    OUT.mkdir(exist_ok=True)
+def build_assets(font_b64):
+    """统一生成静态资源，供 CLI 与回归测试共用。"""
+    global FONT_M
+    FONT_M = font_b64
     accents = [PALETTE["roxy"], PALETTE["grass_deep"], PALETTE["gold"]]
     outputs = {
         "stack-panel.svg": stack_panel(),
@@ -535,6 +532,12 @@ if __name__ == "__main__":
         outputs[f"tags-{theme}.svg"] = focus_tags(theme)
     for i, spec in enumerate(PROJECT_CARDS):
         outputs[f"card-{spec['slug']}.svg"] = project_card(spec, accents[i])
+    return outputs
+
+
+if __name__ == "__main__":
+    outputs = build_assets(Path(sys.argv[1]).read_text().strip())
+    OUT.mkdir(exist_ok=True)
     for old in OUT.glob("*.svg"):
         if old.name not in outputs:
             old.unlink()

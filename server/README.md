@@ -39,7 +39,23 @@ scp keyart.jpg ubuntu@huanfly.com:/home/ubuntu/apps/gh-cards/official/
 
 ## 静态资产再生成
 
-改了 `tools/content.py`（文案/配色/项目卡）后：
+只调整插画、配色或布局时，在仓库根目录执行（Python 3 标准库即可，无需重新处理字体）：
+
+```bash
+python3 tools/genart.py tools/fonts/wenkai-medium.b64
+python3 -m unittest discover -s tests -v
+```
+
+插画原语位于 `tools/artlib.py`，昼夜横幅和统计卡位于 `tools/cards.py`，
+其余静态卡片位于 `tools/genart.py`。横幅包含浮岛小屋、遗迹、山谷溪流与
+前景植物；页脚和魔导书插画沿用相同的细线、纸纹与淡金装饰。
+测试覆盖静态 SVG、四种昼夜横幅、内部引用及生成结果的一致性。
+
+README 的横幅、统计卡和素材位仍指向线上端点，仅再生成本地 `assets/`
+不会更新它们；确认效果后需执行 `bash server/deploy.sh` 同步动态服务。
+`official/` 中已有图片时，素材位会继续优先展示该图片，而非魔导书回退图。
+
+如果改了 `tools/content.py` 中的文案或新增字符，先更新字体子集：
 
 ```bash
 python3 -m venv .venv && .venv/bin/pip install fonttools brotli   # 首次

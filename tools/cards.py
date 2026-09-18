@@ -47,18 +47,22 @@ _PHASE = {
 
 
 def _sun(phase):
-    if phase == "day":
-        return (f'<circle cx="840" cy="70" r="30" fill="#fff3c9" '
-                f'opacity="0.95" filter="url(#bigglow)"/>')
-    if phase == "dawn":
-        return (f'<circle cx="820" cy="186" r="26" fill="#ffe9bd" '
-                f'opacity="0.9" filter="url(#bigglow)"/>')
-    if phase == "dusk":
-        return (f'<circle cx="810" cy="192" r="30" fill="#ffd39a" '
-                f'opacity="0.95" filter="url(#bigglow)"/>')
-    # night: 弯月
-    return (f'<g filter="url(#bigglow)"><path d="M 848 58 A 26 26 0 1 0 862 '
-            f'104 A 21 21 0 1 1 848 58 Z" fill="#f4ecc9" opacity="0.95"/></g>')
+    if phase == "night":
+        return (A.horizon_glow(846, 73, 70, 70, "#b5d5e8", 0.18)
+                + '<path d="M 850 45 A 27 27 0 1 0 865 88 '
+                  'A 23 23 0 0 1 850 45 Z" fill="#f6edcd" '
+                  'filter="url(#softglow)"/>'
+                + A.stroke("M 822 65 Q 817 84 836 93", "#ffffff", 1, opacity=0.7)
+                + A.sparkle(886, 53, 3.5, color="#f6edcd", seed=10, dur=5))
+    x, y, r, color = {
+        "day": (837, 66, 25, "#fff4ce"),
+        "dawn": (764, 210, 28, "#ffeac8"),
+        "dusk": (761, 212, 32, "#ffdda7"),
+    }[phase]
+    return (A.horizon_glow(x, y, r * 3.5, r * 3.5, color, 0.5)
+            + f'<circle cx="{x}" cy="{y}" r="{r}" fill="{color}" opacity="0.95"/>'
+            + f'<circle cx="{x}" cy="{y}" r="{r + 7}" fill="none" '
+              f'stroke="{color}" stroke-width="0.8" opacity="0.45"/>')
 
 
 def build_hero(phase, font_b64):
@@ -98,18 +102,22 @@ def build_hero(phase, font_b64):
     body.append(_sun(phase))
 
     # 远景云（带底部阴影）
-    cloud_specs = [(150, 84, 1.2, 30, 58), (415, 50, 0.85, -22, 50),
-                   (700, 108, 1.05, 26, 64), (905, 62, 0.72, -18, 44),
-                   (280, 152, 0.62, 20, 72)]
+    cloud_specs = [(125, 65, 0.78, 22, 68), (377, 48, 0.55, -16, 60),
+                   (696, 87, 0.7, 18, 74), (962, 108, 0.64, -14, 54),
+                   (266, 191, 0.44, 14, 82)]
     for i, (cx, cy, sc, drift, dur) in enumerate(cloud_specs):
         body.append(A.cloud(cx, cy, sc, st["cloud"],
                             st["cloud_op"] * (1 - 0.12 * (i % 3)),
                             seed=20 + i, drift=drift, dur=dur,
                             shade=st["cloud_shade"]))
 
-    # 标题背后的魔法阵（收小、变淡，让标题成为焦点）
-    body.append(A.magic_circle(500, 158, 118, color=st["mc"], seed=3,
-                               opacity=st["mc_op"], sw=1.3))
+    # 淡金星盘像地图水印，装饰不争抢文字的对比度。
+    body.append(A.magic_circle(500, 143, 108, color=st["mc"], seed=3,
+                               opacity=st["mc_op"] * 0.7, sw=0.9))
+    body.append(A.stroke("M 254 143 Q 277 108 302 111 M 725 158 Q 748 178 774 166",
+                         st["mc"], 0.9, opacity=0.4, dash="2 6"))
+    for sx, sy in [(266, 124), (754, 172)]:
+        body.append(A.sparkle(sx, sy, 3.8, color=st["mc"], dur=5.5, lo=0.35))
 
     # 飞鸟（白天/黎明/黄昏）
     if phase != "night":
@@ -117,23 +125,61 @@ def build_hero(phase, font_b64):
                             PALETTE["ink_soft"] if phase != "dusk"
                             else "#5d4a48"))
 
-    # 最远山棱 + 薄雾（大气透视）
-    body.append(A.ridge(W, 262, 30, st["ridge"], seed=88, opacity=st["ridge_op"]))
-    body.append(A.mist_band(0, 236, W, 44, st["mist"], opacity=0.75))
+    # 层叠远山与受光山脊，中心压低，给标题和地平线留白。
+    body.append(A.ridge(W, 254, 45, st["ridge"], seed=88, opacity=st["ridge_op"] * 0.55))
+    mountains = ("M 0 253 L 70 228 108 235 190 188 263 248 312 226 "
+                 "390 264 481 253 570 265 649 237 694 249 778 199 "
+                 "825 227 868 214 932 250 1000 232 V 340 H 0 Z")
+    body.append(A.fill_path(mountains, st["ridge"], st["ridge_op"]))
+    body.append(A.fill_path("M 190 188 L 171 220 189 215 203 230 211 228 Z "
+                           "M 778 199 L 753 226 777 217 796 231 807 225 Z",
+                           st["mist"], 0.55))
+    body.append(A.stroke("M 190 189 L 214 241 244 254 M 778 200 L 796 240 821 253",
+                         st["mist"], 1.1, opacity=0.35))
+    body.append(A.mist_band(0, 236, W, 44, st["mist"], opacity=0.7))
 
-    # 浮空岛
-    body.append(A.floating_island(150, 118, 112, seed=11, bob=5, dur=8.5,
-                                  waterfall=True))
-    body.append(A.floating_island(864, 152, 68, seed=23, bob=4, dur=6.5))
-    if phase == "night":
-        body.append(A.dot_particle(150, 150, 2.2, PALETTE["glow"], seed=61, rise=10))
-        body.append(A.dot_particle(864, 178, 1.8, PALETTE["glow"], seed=62, rise=8))
+    # 浮岛是一座可居住的小世界；夜间使用冷色岩石与暖窗。
+    night = phase == "night"
+    island_grass = "#57796f" if night else st["hill_near"]
+    island_deep = "#3b605b" if night else st["tuft"]
+    body.append(A.floating_island(148, 157, 156, seed=11, bob=4, dur=10,
+                                  waterfall=True, grass=island_grass,
+                                  grass_deep=island_deep,
+                                  rock="#506676" if night else "#92937e",
+                                  night=night))
+    body.append(A.floating_island(860, 179, 99, seed=23, bob=3, dur=8,
+                                  grass=island_grass, grass_deep=island_deep,
+                                  rock="#506676" if night else "#92937e",
+                                  landmark="arch", night=night))
 
-    # 草原
-    body.append(A.hills(W, 270, 15, st["hill_far"], seed=8, opacity=0.92))
-    body.append(A.mist_band(0, 262, W, 30, st["mist"], opacity=0.45))
-    body.append(A.hills(W, 297, 11, st["hill_near"], seed=15))
-    body.append(A.grass_tufts(W, 322, 26, seed=9, color=st["tuft"]))
+    # 草原与蜿蜒溪流：窄的远端和宽的近端形成透视。
+    body.append(A.hills(W, 273, 19, st["hill_far"], seed=8, opacity=0.95))
+    body.append(A.mist_band(0, 260, W, 30, st["mist"], opacity=0.4))
+    body.append(A.hills(W, 300, 19, st["hill_near"], seed=15))
+    river = ("M 571 272 Q 543 280 558 286 Q 595 298 552 308 "
+             "Q 507 320 503 340 H 403 Q 427 316 501 305 "
+             "Q 568 295 543 288 Q 530 280 568 272 Z")
+    body.append(A.fill_path(river, "#83b9ca" if not night else "#456b83", 0.88))
+    body.append(A.stroke("M 569 274 Q 540 282 553 288 Q 580 298 518 310 "
+                         "Q 462 322 446 340", st["mist"], 1.5, opacity=0.6))
+    body.append(A.stroke("M 555 294 h 16 M 526 306 h 18 M 481 319 h 26 "
+                         "M 485 326 h 11 M 440 334 h 30", st["mist"], 1, opacity=0.55))
+    # 成组的小树林与近景坡地，避免整齐重复。
+    for px, py, sc in [(39, 286, .34), (55, 287, .43), (71, 286, .28),
+                        (309, 292, .28), (325, 293, .39), (342, 294, .24),
+                        (731, 287, .28), (746, 287, .4), (762, 287, .3),
+                        (944, 280, .42), (962, 279, .54), (982, 280, .37)]:
+        body.append(A.pine(px, py, sc, st["tuft"], st["hill_far"]))
+    body.append(A.fill_path("M 0 296 Q 128 286 264 322 Q 300 331 349 340 H 0 Z",
+                           st["tuft"], 0.65))
+    body.append(A.fill_path("M 692 340 Q 814 298 1000 306 V 340 Z",
+                           st["tuft"], 0.65))
+    body.append(A.meadow(W, 334, seed=9, color=st["tuft"],
+                         flower="#d6ded1" if night else "#fbf1d5", count=40, height=20))
+    for x, y, sc, flip in [(28, 346, .86, False), (87, 350, .55, True),
+                            (971, 346, .9, True), (920, 350, .48, False)]:
+        body.append(A.botanical(x, y, sc, color=st["tuft"],
+                                flower=st["mist"], flip=flip))
 
     # 魔力粒子 / 萤火
     for i in range(12):
@@ -174,9 +220,8 @@ def build_hero(phase, font_b64):
     body.append(A.text(500, 225, HERO_SUB, 14, color=st["sub"],
                        spacing="3", opacity=0.9))
 
-    # 手绘内边框
-    body.append(A.stroke(A.wobbly_rect_d(8, 8, W - 16, H - 16, seed=5, amp=1.3),
-                         st["frame"], 1.8, opacity=0.5))
+    # 细线角花替代粗重方框，保留插画的完整轮廓。
+    body.append(A.ornament_frame(W, H, st["frame"], inset=10, opacity=0.45))
     body.append('</g>')
     return A.svg_doc(W, H, "".join(body), font_b64=font_b64,
                      title="Huanfly - hand drawn fantasy banner")

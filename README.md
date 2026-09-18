@@ -1,7 +1,8 @@
+<!-- SVG 源码：tools/artlib.py、tools/cards.py、tools/genart.py；生成与部署方式见 server/README.md -->
 <!-- 横幅由 huanfly.com 动态生成：随北京时间在黎明/白天/黄昏/夜晚间切换 -->
 <p align="center">
   <a href="https://huanfly.com">
-    <img src="https://huanfly.com/gh/hero.svg" width="100%" alt="Huanfly — 手绘异世界横幅，随北京时间昼夜流转" />
+    <img src="https://huanfly.com/gh/hero.svg" width="100%" alt="Huanfly — 浮岛小屋、远山与溪流组成的手绘异世界，随北京时间昼夜流转" />
   </a>
 </p>
 
@@ -10,7 +11,7 @@
   <img src="./assets/h-about-light.svg" width="100%" alt="关于我 · About" />
 </picture>
 
-<!-- 素材位：由 huanfly.com/gh/keyart 提供，未放图时显示原创插画 -->
+<!-- 素材位：由 huanfly.com/gh/keyart 提供，未放图时显示星轨魔导书原创插画 -->
 <img align="right" width="220" src="https://huanfly.com/gh/keyart" alt="" />
 
 个人开发者，AI 技术狂热研究中。
@@ -53,7 +54,7 @@
 
 <br />
 
-<img src="./assets/footer.svg" width="100%" alt="草原暮色中持杖的旅人 —— 把手上的事做好，把本事留在作品里。" />
+<img src="./assets/footer.svg" width="100%" alt="草原暮色中，戴帽持杖的旅人望向远山溪流 —— 把手上的事做好，把本事留在作品里。" />
 
 <p align="center">
   <sub>

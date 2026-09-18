@@ -2,7 +2,7 @@
 """手绘风 SVG 原语库（Excalidraw 质感 + 水彩晕染 + SMIL 动画）。
 
 所有随机性都来自显式传入的 seed，保证产物可复现。
-被 tools/genart.py（静态资产）与 server/cards.py（动态卡片）共用。
+被 tools/genart.py（静态资产）与 tools/cards.py（动态卡片）共用。
 """
 import itertools
 import json
@@ -248,23 +248,22 @@ def vignette(w, h, color="#5a4a30", opacity=0.10, rx=14):
 
 def paper_bg(w, h, rx=14, color=None, edge=True, seed=5, shadow=True,
              inset=4, sw=1.9, edge_opacity=0.85, vignette_op=0.09):
-    """羊皮纸底 + 微暗边缘 + 手绘描边（+ 柔和投影）。"""
+    """暖白纸面、细金边与圆角内框；轻微抖动保留手绘感。"""
     color = color or PALETTE["paper"]
-    fx = f' filter="url(#cardshadow)"' if shadow else ""
+    fx = ' filter="url(#cardshadow)"' if shadow else ""
     parts = [f'<rect x="{inset}" y="{inset}" width="{w - 2 * inset}" '
              f'height="{h - 2 * inset}" rx="{rx}" fill="{color}"{fx}/>']
     if vignette_op > 0:
         parts.append(f'<g transform="translate({inset} {inset})">'
                      + vignette(w - 2 * inset, h - 2 * inset,
-                                opacity=vignette_op, rx=rx) + '</g>')
+                                opacity=vignette_op * 0.55, rx=rx) + '</g>')
     if edge:
-        m = inset + 5
-        parts.append(stroke(wobbly_rect_d(m, m, w - 2 * m, h - 2 * m,
-                                          seed=seed, amp=1.3),
-                            PALETTE["ink"], sw, opacity=edge_opacity))
-        parts.append(stroke(wobbly_rect_d(m, m, w - 2 * m, h - 2 * m,
-                                          seed=seed + 97, amp=2.0),
-                            PALETTE["ink"], sw * 0.5, opacity=0.22))
+        m = inset + 2
+        parts.append(stroke(wobbly_rounded_rect_d(
+            m, m, w - 2 * m, h - 2 * m, rx - 2, seed=seed, amp=0.35),
+            PALETTE["ink_soft"], sw * 0.55, opacity=edge_opacity * 0.48))
+        parts.append(ornament_frame(w, h, PALETTE["gold"], inset=inset + 9,
+                                    opacity=0.42, corners=10))
     return "".join(parts)
 
 
@@ -389,100 +388,115 @@ def magic_circle(cx, cy, r, color=None, seed=3, dur_outer=80, dur_inner=60,
 
 def cloud(cx, cy, scale=1.0, color="#ffffff", opacity=0.75, seed=4,
           drift=26, dur=42, shade=None, blur="wcblur"):
-    """水彩云团，左右漂移；shade 给底部一层暗色增加体积感。"""
+    """有清晰轮廓、背光边缘和柔和底影的层叠云，不再整团模糊。"""
     rnd = random.Random(seed)
-    spec = [(-1.5, 0.15, 0.62), (-0.6, -0.28, 0.85), (0.4, -0.2, 0.95),
-            (1.3, 0.1, 0.7), (0.1, 0.25, 0.8)]
-    lobes = []
-    for i, (dx, dy, rr) in enumerate(spec):
-        r = 26 * rr * scale * rnd.uniform(0.9, 1.1)
-        lobes.append((cx + dx * 30 * scale, cy + dy * 26 * scale, r, i))
-    parts = []
+    sy = rnd.uniform(0.85, 1.12)
+    d = ("M -82 14 Q -95 9 -82 3 Q -76 -3 -65 0 "
+         "C -69 -19 -48 -28 -35 -17 C -29 -47 9 -49 20 -22 "
+         "C 38 -34 57 -21 54 -6 C 71 -13 82 -2 78 7 "
+         "Q 97 9 89 16 C 46 22 -36 21 -82 14 Z")
+    parts = [fill_path(d, color)]
     if shade:
-        for (x, y, r, i) in lobes:
-            d = wobbly_circle_d(x, y + 5 * scale, r * 1.02,
-                                seed=seed * 7 + i, irregular=0.10, n=12)
-            parts.append(f'<path d="{d}" fill="{shade}" opacity="0.45"/>')
-    for (x, y, r, i) in lobes:
-        d = wobbly_circle_d(x, y, r, seed=seed * 7 + i, irregular=0.10, n=12)
-        parts.append(f'<path d="{d}" fill="{color}"/>')
-    return (f'<g opacity="{opacity}" filter="url(#{blur})">{"".join(parts)}'
+        parts.append(fill_path(
+            "M -80 13 Q -39 18 -25 4 Q -4 20 20 7 Q 44 21 78 10 "
+            "Q 95 16 70 18 Q -20 26 -80 13 Z", shade, 0.24))
+    parts.append(stroke("M -62 -2 Q -52 -15 -38 -10 M -25 -25 "
+                        "Q -5 -39 10 -24 M 28 -15 Q 42 -20 48 -8",
+                        "#ffffff", 1.5, opacity=0.48))
+    parts.append(stroke("M -102 24 Q -60 28 -31 24 M 37 29 Q 74 31 111 26",
+                        color, 2.2, opacity=0.45))
+    return (f'<g opacity="{opacity}"><g transform="translate({cx} {cy}) '
+            f'scale({scale} {scale * sy:.3f})">{"".join(parts)}</g>'
             f'<animateTransform attributeName="transform" type="translate" '
             f'values="0 0; {drift} 0; 0 0" dur="{dur}s" '
             f'repeatCount="indefinite" calcMode="spline" '
             f'keySplines="0.45 0 0.55 1; 0.45 0 0.55 1"/></g>')
 
 
-def floating_island(cx, cy, w, seed=6, bob=4, dur=7, grass=None, rock="#7a6a55",
-                    grass_deep=None, waterfall=False, ink_opacity=0.5):
-    """浮空岛：草皮圆顶 + 岩石倒锥 + 藤蔓 + 可选瀑布，上下轻浮。"""
+def floating_island(cx, cy, w, seed=6, bob=4, dur=7, grass=None, rock="#8b8976",
+                    grass_deep=None, waterfall=False, ink_opacity=0.5,
+                    landmark="cottage", night=False):
+    """微缩浮岛：切面岩层、苔藓、垂藤、小屋 / 遗迹和渐隐水流。"""
     rnd = random.Random(seed)
     grass = grass or PALETTE["grass"]
     grass_deep = grass_deep or PALETTE["grass_deep"]
-    h = w * 0.55
-    # 草皮顶
-    top_pts = [(cx - w / 2, cy)]
-    for i in range(1, 6):
-        t = i / 6
-        top_pts.append((cx - w / 2 + w * t,
-                        cy - h * 0.30 * math.sin(math.pi * t)
-                        + rnd.uniform(-2, 2)))
-    top_pts.append((cx + w / 2, cy))
-    top_d = _smooth_path(top_pts) + f" L {cx + w/2:.1f} {cy:.1f} Z"
-    # 岩石倒锥
-    bot_pts = [(cx + w / 2, cy)]
-    depth = h * rnd.uniform(0.9, 1.15)
-    for i in range(1, 6):
-        t = i / 6
-        bx = cx + w / 2 - w * t
-        by = cy + depth * math.sin(math.pi * min(t * 0.72 + 0.14, 0.86)) \
-            * (1 - 0.25 * abs(0.5 - t)) + rnd.uniform(-3, 3)
-        bot_pts.append((bx, by))
-    bot_pts.append((cx - w / 2, cy))
-    bot_d = _smooth_path(bot_pts) + " Z"
-    parts = [
-        fill_path(bot_d, rock),
-        stroke(bot_d, PALETTE["ink"], 1.5, opacity=ink_opacity),
-        fill_path(top_d, grass),
-        stroke(top_d, grass_deep, 1.7, opacity=0.8),
-    ]
-    # 岩层纹理
-    for i in range(3):
-        y = cy + depth * (0.22 + 0.2 * i)
-        xw = w * (0.36 - 0.09 * i)
-        parts.append(stroke(wobbly_line(cx - xw, y, cx + xw, y,
-                                        seed=seed * 5 + i, amp=1.2),
-                            PALETTE["ink"], 1.0, opacity=0.28))
-    # 草皮边缘的高光与垂落藤蔓
-    parts.append(stroke(wobbly_line(cx - w * 0.42, cy + 2, cx + w * 0.42,
-                                    cy + 2, seed=seed + 41, amp=1.5),
-                        grass_deep, 1.6, opacity=0.55))
-    for i in range(3):
-        vx = cx - w * 0.3 + rnd.uniform(0, w * 0.6)
-        vlen = rnd.uniform(7, 14)
-        parts.append(stroke(f"M {vx:.1f} {cy + 3:.1f} q {rnd.uniform(-3, 3):.1f} "
-                            f"{vlen * 0.6:.1f} {rnd.uniform(-2, 2):.1f} {vlen:.1f}",
-                            grass_deep, 1.2, opacity=0.6))
+    ink = "#39493e" if not night else "#15283b"
+    stone = ("#c2bbaa", "#aaa793", "#666f62") if not night else (
+        "#748595", "#5d7181", "#344858")
+    outline = "M -80 0 L -64 24 -49 29 -38 53 -18 59 -3 83 12 64 30 53 44 27 65 20 80 0 Z"
+    parts = [fill_path(outline, rock),
+             fill_path("M -80 0 L -31 7 -38 53 -49 29 -64 24 Z", stone[0]),
+             fill_path("M -31 7 L 4 14 -3 83 -18 59 -38 53 Z", stone[1]),
+             fill_path("M 4 14 L 47 3 30 53 12 64 -3 83 Z", stone[2]),
+             stroke(outline, ink, 1.0, opacity=ink_opacity)]
+    parts.append(stroke("M -62 15 L -39 21 -33 33 M -24 18 L -13 34 -19 46 "
+                        "M 20 22 L 12 38 16 48 M 45 15 L 36 22 "
+                        "M -35 42 L -23 45 M -9 56 L -3 66",
+                        ink, 1.1, opacity=0.3))
+    parts.append(fill_path("M -81 0 Q -69 -9 -47 -8 Q -30 -20 -9 -14 "
+                           "Q 16 -21 33 -13 Q 66 -13 81 0 L 69 6 48 4 "
+                           "31 11 9 7 -8 12 -27 6 -44 9 -62 4 Z", grass))
+    parts.append(fill_path("M -80 0 Q -27 -5 1 3 Q 45 -1 80 0 L 69 6 48 4 "
+                           "31 11 9 7 -8 12 -27 6 -44 9 -62 4 Z", grass_deep, 0.7))
+    parts.append(stroke("M -68 -3 Q -38 -12 -19 -9 M 29 -8 Q 47 -10 64 -4",
+                        "#e4e7bc" if not night else "#99b7b1", 1.6, opacity=0.65))
+    # 远侧小树与建筑；都与岛体一起轻浮。
+    parts.append(pine(-53, -7, 0.55, grass_deep, ink))
+    parts.append(pine(49, -8, 0.8, grass_deep, ink))
+    if landmark == "cottage":
+        wall, roof = ("#f1e7cb", "#a26d56") if not night else ("#9cacae", "#555d76")
+        parts += [fill_path("M -27 -12 L -27 -40 -3 -54 22 -39 22 -12 Z", wall),
+                  fill_path("M -3 -54 L 22 -39 22 -12 -3 -17 Z", ink, 0.13),
+                  fill_path("M -34 -39 L -7 -60 1 -60 30 -38 23 -35 -3 -53 -27 -35 Z", roof),
+                  stroke("M -34 -39 L -7 -60 1 -60 30 -38 M -27 -35 L -27 -12 "
+                         "22 -12 22 -35", ink, 1.1, opacity=0.65),
+                  fill_path("M 9 -52 L 9 -65 15 -65 15 -47 Z", wall),
+                  stroke("M 8 -65 L 16 -65", ink, 1.5),
+                  fill_path("M -9 -13 V -28 Q -3 -35 3 -28 V -13 Z", "#4c665d"),
+                  f'<rect x="10" y="-32" width="7" height="9" rx="1" '
+                  f'fill="{"#ffd994" if night else "#a9d6d4"}"/>',
+                  stroke("M 13.5 -32 V -23 M 10 -27.5 H 17", wall, 0.9),
+                  stroke("M -22 -40 L -5 -53 M 2 -50 L 20 -38", wall, 0.7, opacity=0.5),
+                  stroke("M -3 -10 Q -12 -3 -20 1", "#e9dfba", 3.5, opacity=0.7)]
+        parts.append(stroke("M 12 -71 Q 4 -77 14 -83 Q 22 -88 15 -95",
+                            "#fff5dc", 2.8, opacity=0.4))
+    elif landmark == "arch":
+        arch = "M -22 -10 V -44 Q -21 -66 0 -67 Q 21 -66 22 -44 V -10 H 12 V -44 Q 11 -56 0 -57 Q -11 -56 -12 -44 V -10 Z"
+        parts += [fill_path(arch, stone[0]), stroke(arch, ink, 1.0, opacity=0.55),
+                  stroke("M -22 -22 H -12 M -22 -36 H -12 M 12 -29 H 22 "
+                         "M 12 -43 H 22 M -16 -58 L -9 -51 M 0 -67 V -57 "
+                         "M 15 -59 L 9 -52", ink, 0.8, opacity=0.35),
+                  stroke("M -18 -56 Q -27 -42 -18 -30 Q -13 -25 -17 -16",
+                         grass_deep, 2.4, opacity=0.85)]
+    for i in range(7):
+        vx = -66 + i * 20 + rnd.uniform(-4, 4)
+        length = rnd.uniform(12, 33)
+        parts.append(stroke(f"M {vx:.1f} 5 q -5 10 -1 {length:.1f}",
+                            grass_deep, 1.5, opacity=0.95))
+        for j in range(3):
+            vy = 9 + j * (length - 6) / 3
+            parts.append(fill_path(
+                f"M {vx-2:.1f} {vy:.1f} q -8 -3 -5 4 q 5 3 5 -4 Z", grass_deep))
+    for x, y, size in [(-55, 45, 5), (42, 57, 4), (19, 85, 3)]:
+        parts.append(fill_path(f"M {x} {y} l {size} -2 2 {size} -3 {size+3} Z", rock))
     if waterfall:
-        wx = cx - w * 0.16
-        wy = cy + depth * 0.30
-        flen = w * 0.60
-        parts.append(
-            f'<path d="M {wx:.1f} {wy:.1f} q 2 {flen * 0.5:.1f} -1.5 {flen:.1f}" '
-            f'fill="none" stroke="{PALETTE["glow"]}" stroke-width="4.5" '
-            f'stroke-linecap="round" opacity="0.55" '
-            f'stroke-dasharray="10 7">'
-            f'<animate attributeName="stroke-dashoffset" values="0;-34" '
-            f'dur="1.6s" repeatCount="indefinite"/></path>'
-            f'<path d="M {wx + 3:.1f} {wy + 4:.1f} q 2 {flen * 0.5:.1f} -1 '
-            f'{flen * 0.9:.1f}" fill="none" stroke="#ffffff" '
-            f'stroke-width="2" stroke-linecap="round" opacity="0.5" '
-            f'stroke-dasharray="6 9">'
-            f'<animate attributeName="stroke-dashoffset" values="0;-30" '
-            f'dur="1.3s" repeatCount="indefinite"/></path>'
-            f'<circle cx="{wx - 1:.1f}" cy="{wy + flen + 4:.1f}" r="3.5" '
-            f'fill="{PALETTE["glow"]}" opacity="0.35" filter="url(#wcblur)"/>')
-    return (f'<g>{"".join(parts)}'
+        gid = uid("fall")
+        parts.append(f'<linearGradient id="{gid}" x1="0" y1="0" x2="0" y2="1">'
+                     '<stop stop-color="#e5ffff" stop-opacity="0.85"/>'
+                     '<stop offset="0.65" stop-color="#a3dde1" stop-opacity="0.55"/>'
+                     '<stop offset="1" stop-color="#e5ffff" stop-opacity="0"/>'
+                     '</linearGradient>')
+        parts.append(fill_path("M -25 3 Q -20 14 -23 44 Q -25 83 -19 117 "
+                               "L -12 117 Q -19 73 -15 42 Q -11 12 -17 3 Z",
+                               f"url(#{gid})"))
+        parts.append('<path d="M -20 8 Q -16 46 -20 70 M -18 84 L -17 101" '
+                     'fill="none" stroke="#f1ffff" stroke-width="1.2" '
+                     'opacity="0.75" stroke-dasharray="13 8">'
+                     '<animate attributeName="stroke-dashoffset" values="0;-42" '
+                     'dur="3s" repeatCount="indefinite"/></path>')
+        parts.append(horizon_glow(-16, 111, 23, 7, "#d9efeb", 0.4))
+    return (f'<g><g transform="translate({cx} {cy}) scale({w / 160:.4f})">'
+            f'{"".join(parts)}</g>'
             f'<animateTransform attributeName="transform" type="translate" '
             f'values="0 0; 0 {-bob}; 0 0" dur="{dur}s" '
             f'repeatCount="indefinite" calcMode="spline" '
@@ -566,6 +580,109 @@ def birds(specs, color, sw=1.5, opacity=0.8):
             f"{bx + 7 * s:.1f} {by:.1f}",
             color, sw * s, opacity=max(0.2, opacity - i * 0.12)))
     return "".join(parts)
+
+
+# ========================================================== 精细场景与花饰 ==
+
+def ornament_frame(w, h, color, inset=12, opacity=0.55, corners=16):
+    """地图式细内框；角线与菱形保持克制，不压住内容。"""
+    x, y, r = inset, inset, corners
+    parts = [f'<rect x="{x}" y="{y}" width="{w-2*x}" height="{h-2*y}" '
+             f'rx="{r}" fill="none" stroke="{color}" stroke-width="0.7" '
+             f'opacity="{opacity * 0.5}"/>']
+    for px, py, sx, sy in ((x, y, 1, 1), (w-x, y, -1, 1),
+                            (x, h-y, 1, -1), (w-x, h-y, -1, -1)):
+        parts.append(f'<g transform="translate({px} {py}) scale({sx} {sy})" '
+                     f'opacity="{opacity}">'
+                     + stroke(f"M 0 {r+10} V {r} Q 0 0 {r} 0 H {r+10}", color, 1.1)
+                     + fill_path("M 6 2 L 9 6 6 10 3 6 Z", color)
+                     + '</g>')
+    return "".join(parts)
+
+
+def pine(x, y, scale=1.0, color="#668567", trunk="#586550"):
+    """分层针叶树，原点在树根，标准高度约 62。"""
+    return (f'<g transform="translate({x} {y}) scale({scale})">'
+            + stroke("M 0 0 Q 1 -30 0 -59", trunk, 2.1)
+            + fill_path("M 0 -64 Q -3 -48 -10 -41 L -5 -42 Q -10 -29 -17 -24 "
+                        "L -10 -25 Q -15 -13 -22 -8 Q -9 -5 0 -9 Q 13 -4 21 -8 "
+                        "Q 11 -16 10 -25 L 16 -23 Q 7 -36 5 -43 L 10 -40 "
+                        "Q 3 -53 0 -64 Z", color)
+            + stroke("M 0 -51 V -8 M 0 -34 L -7 -29 M 0 -24 L 10 -18 "
+                     "M 0 -17 L -12 -12", trunk, 0.9, opacity=0.35)
+            + stroke("M -2 -47 L -5 -41 M -7 -31 L -12 -25 M -12 -16 L -17 -11",
+                     "#eef0cf", 1.0, opacity=0.24) + '</g>')
+
+
+def botanical(x, y, scale=1.0, color="#628066", flower="#f8efd5", flip=False):
+    """羽状枝叶与野花，适合前景角落和纸面装饰。"""
+    sx = -scale if flip else scale
+    parts = [stroke("M 0 0 Q -3 -28 -23 -62 M -1 -12 Q 12 -33 21 -39",
+                    color, 1.4)]
+    for lx, ly, turn in [(-4, -19, -25), (-7, -29, -40), (-11, -39, -50),
+                          (-17, -50, -55), (8, -27, 40), (15, -34, 45)]:
+        parts.append(f'<g transform="translate({lx} {ly}) rotate({turn})">'
+                     + fill_path("M 0 0 Q -18 -4 -15 -13 Q -4 -12 0 0 Z", color, 0.85)
+                     + fill_path("M 0 0 Q 15 -3 13 -12 Q 3 -11 0 0 Z", color, 0.68)
+                     + stroke("M -12 -10 L 0 0 10 -9", flower, 0.45, opacity=0.35)
+                     + '</g>')
+    parts.append(stroke("M 5 0 Q 21 -9 30 -27 M 13 -10 Q 32 -5 40 -13",
+                        color, 1.1))
+    for fx, fy, s in [(30, -29, 1), (41, -15, 0.75)]:
+        for i in range(5):
+            a = math.tau * i / 5
+            px, py = fx + math.cos(a) * 2.5 * s, fy + math.sin(a) * 2.5 * s
+            parts.append(f'<ellipse cx="{px:.2f}" cy="{py:.2f}" rx="{2.6*s}" '
+                         f'ry="{1.6*s}" transform="rotate({i*72} {px:.2f} {py:.2f})" '
+                         f'fill="{flower}"/>')
+        parts.append(f'<circle cx="{fx}" cy="{fy}" r="{1.4*s}" fill="{PALETTE["gold"]}"/>')
+    return f'<g transform="translate({x} {y}) scale({sx} {scale})">{"".join(parts)}</g>'
+
+
+def meadow(w, y, seed=9, color="#55745a", flower="#f5eace", count=22, height=25):
+    """疏密有致的草穗、叶片与细小花头。"""
+    rnd = random.Random(seed)
+    parts = []
+    for i in range(count):
+        x = rnd.uniform(20, w - 20)
+        by = y + rnd.uniform(-5, 6)
+        h = rnd.uniform(height * 0.3, height)
+        dx = rnd.uniform(-6, 6)
+        parts.append(stroke(f"M {x:.1f} {by:.1f} q {dx:.1f} {-h*0.6:.1f} "
+                            f"{dx:.1f} {-h:.1f}", color, 1.0, opacity=0.85))
+        parts.append(fill_path(f"M {x:.1f} {by-3:.1f} q -9 -2 -8 -8 q 7 1 8 8 Z",
+                               color, 0.7))
+        if i % 3 == 0:
+            for ox, oy in [(-1.8, 0), (1.8, 0), (0, -2)]:
+                parts.append(f'<circle cx="{x+dx+ox:.1f}" cy="{by-h+oy:.1f}" '
+                             f'r="1.8" fill="{flower}" opacity="0.88"/>')
+            parts.append(f'<circle cx="{x+dx:.1f}" cy="{by-h:.1f}" r="0.9" '
+                         f'fill="{PALETTE["gold"]}"/>')
+    return "".join(parts)
+
+
+def traveler(x, y, scale=1.0, cloak="#40596a", light="#c2eee5"):
+    """侧背面的原创旅人：宽檐帽、披风褶皱、挎包和木杖。"""
+    ink = "#344239"
+    parts = [fill_path("M -6 -10 L -8 -1 -3 0 0 -10 M 5 -10 L 8 0 13 0 10 -12 Z", ink),
+             fill_path("M -5 -43 Q -15 -33 -17 -13 Q -4 -6 14 -13 "
+                       "L 10 -36 4 -44 Z", cloak),
+             fill_path("M 3 -40 Q 3 -23 14 -13 L 5 -11 Q -1 -22 -3 -38 Z", ink, 0.3),
+             stroke("M -8 -31 L -11 -16 M -3 -26 L -5 -13", "#dbe6cc", 0.7, opacity=0.35),
+             fill_path("M -5 -45 Q -10 -57 0 -60 Q 11 -59 7 -47 L 3 -42 Z", "#d8c7a2"),
+             fill_path("M -17 -53 Q -8 -56 -6 -62 L 0 -76 Q 8 -71 10 -58 "
+                       "Q 18 -56 18 -53 Q 0 -49 -17 -53 Z", cloak),
+             stroke("M -8 -57 Q 1 -53 10 -56", "#bba071", 1.8),
+             fill_path("M -8 -44 Q 1 -39 9 -44 L 10 -39 Q 20 -34 23 -27 "
+                       "Q 13 -31 6 -37 L -8 -39 Z", "#bc8064"),
+             stroke("M -10 -40 L 8 -19", "#bcab84", 1.8),
+             fill_path("M -13 -23 Q -19 -20 -16 -11 L -7 -11 -5 -21 Z", "#917859"),
+             stroke("M 20 0 L 23 -57 Q 30 -64 24 -69 Q 18 -72 18 -65", "#715e48", 2.2),
+             stroke("M 8 -32 Q 15 -27 21 -31", cloak, 5),
+             f'<circle cx="21" cy="-31" r="2.2" fill="#d8c7a2"/>',
+             f'<circle cx="23" cy="-64" r="3.2" fill="{light}" filter="url(#bigglow)"/>',
+             sparkle(23, -64, 3.2, color=light, seed=41, dur=4.8, lo=0.5)]
+    return f'<g transform="translate({x} {y}) scale({scale})">{"".join(parts)}</g>'
 
 
 # ================================================================== 文字 ==
