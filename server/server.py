@@ -25,6 +25,7 @@ BASE = Path(__file__).resolve().parent
 sys.path.insert(0, str(BASE))
 
 import cards  # noqa: E402
+import stat_playback  # noqa: E402
 from content import HERO_MOTTO  # noqa: E402
 
 USER = "Huanfiy"
@@ -35,6 +36,8 @@ FONT_B64 = (BASE / "wenkai-medium.b64").read_text().strip()
 CACHE_FILE = BASE / "cache.json"
 OFFICIAL_DIR = BASE / "official"
 FALLBACK_ART = BASE / "fallback-art.svg"
+PLAYBACK = BASE / "playback"
+STATS_TILES = stat_playback.load_tiles(PLAYBACK)
 
 MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
         ".webp": "image/webp", ".gif": "image/gif",
@@ -106,28 +109,32 @@ def fetch_stats():
 # ---------------------------------------------------------------- 缓存层 --
 
 _lock = threading.Lock()
-_stats_svg = None
+_stats_svg = _stats_lite = None
+
+
+def _publish_stats(data):
+    global _stats_svg, _stats_lite
+    svg = cards.build_stats(data, FONT_B64)
+    lite = stat_playback.optimize(svg, STATS_TILES)
+    with _lock:
+        _stats_svg, _stats_lite = svg, lite
 
 
 def _load_disk_cache():
-    global _stats_svg
     if CACHE_FILE.exists():
         try:
             data = json.loads(CACHE_FILE.read_text())
-            _stats_svg = cards.build_stats(data, FONT_B64)
+            _publish_stats(data)
             log("loaded disk cache from", data.get("updated"))
         except Exception as e:
             log("disk cache broken:", e)
 
 
 def _refresh_loop():
-    global _stats_svg
     while True:
         try:
             data = fetch_stats()
-            svg = cards.build_stats(data, FONT_B64)
-            with _lock:
-                _stats_svg = svg
+            _publish_stats(data)
             CACHE_FILE.write_text(json.dumps(data, ensure_ascii=False))
             log("stats refreshed:", data["repos"], "repos,",
                 data["stars"], "stars")
@@ -153,13 +160,15 @@ def hero_phase(now=None):
     return "night"
 
 
-def keyart():
+def keyart(playback=False):
     """official/ 目录里最新的一张图；没有则回退原创插画。"""
     files = [p for p in OFFICIAL_DIR.glob("*")
              if p.suffix.lower() in MIME and p.is_file()]
     if files:
         p = max(files, key=lambda p: p.stat().st_mtime)
         return p.read_bytes(), MIME[p.suffix.lower()]
+    if playback:
+        return (PLAYBACK / "fallback-art.webp").read_bytes(), MIME[".webp"]
     return FALLBACK_ART.read_bytes(), MIME[".svg"]
 
 
@@ -184,15 +193,18 @@ class Handler(BaseHTTPRequestHandler):
             if path == "/gh/hero.svg":
                 self._send(HERO[hero_phase()],
                            "image/svg+xml; charset=utf-8", 900)
-            elif path == "/gh/stats.svg":
+            elif path == "/gh/hero.webp":
+                image = PLAYBACK / f"hero-{hero_phase()}.webp"
+                self._send(image.read_bytes(), MIME[".webp"], 900)
+            elif path in ("/gh/stats.svg", "/gh/stats-lite.svg"):
                 with _lock:
-                    svg = _stats_svg
+                    svg = _stats_lite if path == "/gh/stats-lite.svg" else _stats_svg
                 if svg is None:
                     self.send_error(503, "stats not ready")
                     return
                 self._send(svg, "image/svg+xml; charset=utf-8", 1800)
-            elif path == "/gh/keyart":
-                body, ctype = keyart()
+            elif path in ("/gh/keyart", "/gh/keyart/playback"):
+                body, ctype = keyart(playback=path.endswith("/playback"))
                 self._send(body, ctype, 3600)
             elif path == "/gh/health":
                 self._send("ok", "text/plain", 0)

@@ -1,16 +1,18 @@
 # gh-cards 动态卡片服务
 
-为 profile README 提供动态 SVG 的小服务，跑在 `huanfly.com`（systemd 常驻，
+为 profile README 提供动态插画与实时统计的小服务，跑在 `huanfly.com`（systemd 常驻，
 `127.0.0.1:8321`，nginx `location ^~ /gh/` 反代）。仅用 Python 3 stdlib。
 
 ## 端点
 
 | 端点 | 说明 | 缓存 |
 | --- | --- | --- |
-| `/gh/hero.svg` | 手绘横幅，按北京时间切换黎明(5-8)/白天(8-17)/黄昏(17-20)/夜晚 | 15 min |
-| `/gh/stats.svg` | GitHub 公开统计卡，后台每 30 min 刷新，失败保留旧值 | 30 min |
-| `/gh/keyart` | 关于我的素材位：`official/` 目录有图返回最新一张，否则回退原创插画（480×480） | 60 min |
+| `/gh/hero.webp` | 24 fps 循环横幅，按北京时间切换黎明(5-8)/白天(8-17)/黄昏(17-20)/夜晚 | 15 min |
+| `/gh/stats-lite.svg` | 实时统计、矢量文字和动画；每 30 min 刷新，失败保留旧值 | 30 min |
+| `/gh/keyart/playback` | `official/` 有图仍返回最新原图，否则播放原创魔导书动画 | 60 min |
 | `/gh/health` | 健康检查 | — |
+
+旧端点 `/gh/hero.svg`、`/gh/stats.svg` 和 `/gh/keyart` 继续提供原版资源，支持对照与回滚。
 
 ## 部署 / 更新
 
@@ -20,10 +22,26 @@
 bash server/deploy.sh
 ```
 
-脚本会同步 `tools/{artlib,cards,content}.py`、字体子集（`.b64` 与
-`.metrics.json` 字宽表）、`server.py`、回退插画到
+脚本先上传服务用的 `assets/playback/` 播放资产，再同步生成代码、字体子集、`server.py` 和原版回退插画到
 `/home/ubuntu/apps/gh-cards/`，安装并重启 systemd 服务 `gh-cards`，
 最后做健康检查。
+
+## 发布播放资产
+
+SVG 是创作源。复杂场景在构建机用 Chromium 的 SVG 引擎渲染为透明循环 WebP；小卡与标题优先无损。各运动对齐整数周期以便首尾衔接，保持方向，不倒放粒子或瀑布。统计卡不能预烘焙账号数据：只缓存固定的阴影、水彩与纸纹，实时数值仍为矢量文字，光点与转环使用同一 8 Hz 采样网格。服务器不安装浏览器或编码器。
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install pillow playwright psutil websocket-client
+.venv/bin/playwright install chromium  # 也可 export CHROME=/usr/bin/google-chrome
+.venv/bin/python tools/bake.py          # 可指定素材名，如 hero-day footer
+.venv/bin/python tools/bake_stats.py
+python3 -m unittest discover -s tests -v
+bash server/deploy.sh                  # 先确认新端点，再发布 README 与 assets/playback/
+.venv/bin/python tools/measure_profile.py --expect /hero.webp  # 加 --dark 验证深色主题
+```
+
+性能测试使用独立 Firefox 配置，等待 13 张图全部加载，按进程树采样首屏、作品区、统计/页脚。100% 为一个逻辑核；不要把这项读数与整机百分比混用。
 
 ## 素材位换图
 
@@ -52,7 +70,7 @@ python3 -m unittest discover -s tests -v
 测试覆盖静态 SVG、四种昼夜横幅、内部引用及生成结果的一致性。
 
 README 的横幅、统计卡和素材位仍指向线上端点，仅再生成本地 `assets/`
-不会更新它们；确认效果后需执行 `bash server/deploy.sh` 同步动态服务。
+不会更新它们；需按上节重新构建播放资产，确认效果后执行 `bash server/deploy.sh` 同步动态服务。
 `official/` 中已有图片时，素材位会继续优先展示该图片，而非魔导书回退图。
 
 如果改了 `tools/content.py` 中的文案或新增字符，先更新字体子集：

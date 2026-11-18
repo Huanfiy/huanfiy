@@ -4,8 +4,10 @@ set -euo pipefail
 HOST=ubuntu@huanfly.com
 APP=/home/ubuntu/apps/gh-cards
 
-ssh "$HOST" "mkdir -p $APP/official"
-scp tools/artlib.py tools/cards.py tools/content.py \
+ssh "$HOST" "mkdir -p $APP/official $APP/playback"
+# Publish media before enabling handlers which reference it; rsync renames each completed file.
+rsync -a assets/playback/{hero-{dawn,day,dusk,night}.webp,fallback-art.webp,stats-tiles.json} "$HOST:$APP/playback/"
+scp tools/artlib.py tools/cards.py tools/content.py tools/stat_playback.py \
     tools/fonts/wenkai-medium.b64 tools/fonts/wenkai-medium.metrics.json \
     server/server.py \
     assets/fallback-art.svg \
