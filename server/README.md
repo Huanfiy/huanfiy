@@ -22,13 +22,13 @@
 bash server/deploy.sh
 ```
 
-脚本先上传服务用的 `assets/playback/` 播放资产，再同步生成代码、字体子集、`server.py` 和原版回退插画到
+先提交并推送播放资产（首次发布可单独提交，暂不修改 README）。部署脚本验证素材提交已公开，将其固定 SHA 和统计卡图层、生成代码、字体子集、`server.py` 及原版回退插画同步到
 `/home/ubuntu/apps/gh-cards/`，安装并重启 systemd 服务 `gh-cards`，
 最后做健康检查。
 
 ## 发布播放资产
 
-SVG 是创作源。复杂场景在构建机用 Chromium 的 SVG 引擎渲染为透明循环 WebP；小卡与标题优先无损。各运动对齐整数周期以便首尾衔接，保持方向，不倒放粒子或瀑布。统计卡不能预烘焙账号数据：只缓存固定的阴影、水彩与纸纹，实时数值仍为矢量文字，光点与转环使用同一 8 Hz 采样网格。服务器不安装浏览器或编码器。
+SVG 是创作源。复杂场景在构建机用 Chromium 的 SVG 引擎渲染为透明循环 WebP；小卡与标题优先无损。各运动对齐整数周期以便首尾衔接，保持方向，不倒放粒子或瀑布。统计卡不能预烘焙账号数据：只缓存固定的阴影、水彩与纸纹，实时数值仍为矢量文字，光点与转环使用同一 8 Hz 采样网格。服务器不安装浏览器或编码器。较大的横幅与魔导书由服务选择场景后 302 到固定 SHA 的 GitHub 原图 CDN；不要改回从 VPS 直传，Camo 可对截断的动图也返回 200。发布时检查 Camo 响应可解码到最后一帧，不只检查 HTTP 状态码。
 
 ```bash
 python3 -m venv .venv
@@ -37,7 +37,8 @@ python3 -m venv .venv
 .venv/bin/python tools/bake.py          # 可指定素材名，如 hero-day footer
 .venv/bin/python tools/bake_stats.py
 python3 -m unittest discover -s tests -v
-bash server/deploy.sh                  # 先确认新端点，再发布 README 与 assets/playback/
+# 先提交并推送 assets/playback/，再部署；新端点验证后切换 README
+bash server/deploy.sh
 .venv/bin/python tools/measure_profile.py --expect /hero.webp  # 加 --dark 验证深色主题
 ```
 

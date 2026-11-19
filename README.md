@@ -2,7 +2,7 @@
 <!-- 横幅由 huanfly.com 按时段选择预渲染动画：随北京时间在黎明/白天/黄昏/夜晚间切换 -->
 <p align="center">
   <a href="https://huanfly.com">
-    <img src="https://huanfly.com/gh/hero.webp" width="100%" alt="Huanfly — 浮岛小屋、远山与溪流组成的手绘异世界，随北京时间昼夜流转" />
+    <img src="https://huanfly.com/gh/hero.webp?v=2" width="100%" alt="Huanfly — 浮岛小屋、远山与溪流组成的手绘异世界，随北京时间昼夜流转" />
   </a>
 </p>
 
@@ -12,7 +12,7 @@
 </picture>
 
 <!-- 素材位：由 huanfly.com/gh/keyart 提供，未放图时显示星轨魔导书原创插画 -->
-<img align="right" width="220" src="https://huanfly.com/gh/keyart/playback" alt="" />
+<img align="right" width="220" src="https://huanfly.com/gh/keyart/playback?v=2" alt="" />
 
 个人开发者，AI 技术狂热研究中。
 

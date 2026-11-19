@@ -3,6 +3,7 @@
 
 import argparse
 import base64
+import io
 import itertools
 import json
 import re
@@ -10,6 +11,7 @@ import subprocess
 import tempfile
 import time
 from pathlib import Path
+from urllib.request import urlopen
 
 import psutil
 import websocket
@@ -160,6 +162,30 @@ def measure(args):
                             base64.b64decode(data)
                         )
                         time.sleep(0.65)
+            if args.check_media:
+                from PIL import Image
+
+                served = json.loads(
+                    js(
+                        'JSON.stringify([...document.querySelectorAll("article img")].map(e=>e.currentSrc))'
+                    )
+                )
+                for url in served:
+                    with urlopen(url, timeout=30) as response:
+                        if response.headers.get_content_type() != "image/webp":
+                            continue
+                        payload = response.read()
+                    if int.from_bytes(payload[4:8], "little") + 8 != len(payload):
+                        raise ValueError(f"truncated WebP from {url}")
+                    with Image.open(io.BytesIO(payload)) as image:
+                        image.seek(image.n_frames - 1)
+                        image.load()
+                        print(
+                            "verified through final frame:",
+                            image.n_frames,
+                            url[:72],
+                            flush=True,
+                        )
             call("session.end")
             ws.close()
         finally:
@@ -172,5 +198,10 @@ if __name__ == "__main__":
     ap.add_argument("--url", default="https://github.com/Huanfiy")
     ap.add_argument("--expect")
     ap.add_argument("--dark", action="store_true")
+    ap.add_argument(
+        "--check-media",
+        action="store_true",
+        help="decode the actual CDN/Camo WebPs through their final frame",
+    )
     ap.add_argument("--shots", type=Path)
     measure(ap.parse_args())

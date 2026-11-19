@@ -38,6 +38,10 @@ OFFICIAL_DIR = BASE / "official"
 FALLBACK_ART = BASE / "fallback-art.svg"
 PLAYBACK = BASE / "playback"
 STATS_TILES = stat_playback.load_tiles(PLAYBACK)
+# Only redirect to immutable, already published assets. Large files streamed
+# from this VPS can arrive truncated at GitHub's image proxy despite HTTP 200.
+PLAYBACK_REV = (PLAYBACK / "revision").read_text().strip()
+RAW = f"https://raw.githubusercontent.com/Huanfiy/huanfiy/{PLAYBACK_REV}/assets/playback"
 
 MIME = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
         ".webp": "image/webp", ".gif": "image/gif",
@@ -168,7 +172,7 @@ def keyart(playback=False):
         p = max(files, key=lambda p: p.stat().st_mtime)
         return p.read_bytes(), MIME[p.suffix.lower()]
     if playback:
-        return (PLAYBACK / "fallback-art.webp").read_bytes(), MIME[".webp"]
+        return None, MIME[".webp"]
     return FALLBACK_ART.read_bytes(), MIME[".svg"]
 
 
@@ -187,6 +191,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _media_redirect(self, name, max_age):
+        self.send_response(302)
+        self.send_header("Location", f"{RAW}/{name}.webp")
+        self.send_header("Cache-Control", f"max-age={max_age}")
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def do_GET(self):
         path = self.path.split("?")[0]
         try:
@@ -194,8 +205,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(HERO[hero_phase()],
                            "image/svg+xml; charset=utf-8", 900)
             elif path == "/gh/hero.webp":
-                image = PLAYBACK / f"hero-{hero_phase()}.webp"
-                self._send(image.read_bytes(), MIME[".webp"], 900)
+                self._media_redirect(f"hero-{hero_phase()}", 900)
             elif path in ("/gh/stats.svg", "/gh/stats-lite.svg"):
                 with _lock:
                     svg = _stats_lite if path == "/gh/stats-lite.svg" else _stats_svg
@@ -205,7 +215,10 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(svg, "image/svg+xml; charset=utf-8", 1800)
             elif path in ("/gh/keyart", "/gh/keyart/playback"):
                 body, ctype = keyart(playback=path.endswith("/playback"))
-                self._send(body, ctype, 3600)
+                if body is None:
+                    self._media_redirect("fallback-art", 3600)
+                else:
+                    self._send(body, ctype, 3600)
             elif path == "/gh/health":
                 self._send("ok", "text/plain", 0)
             else:
